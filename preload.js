@@ -14,5 +14,7 @@ contextBridge.exposeInMainWorld('api', {
   saveFileDialog: (name) => ipcRenderer.invoke('save-file-dialog', name),
   writeFile: (path, content) => ipcRenderer.invoke('write-file', path, content),
   generateConflicts: (activeMods) => ipcRenderer.invoke('generate-conflicts', activeMods),
+  checkForUpdate: () => ipcRenderer.invoke('check-for-update'),
+  downloadUpdate: (url) => ipcRenderer.invoke('download-update', url),
   launchGame: (gamePath) => ipcRenderer.invoke('launch-game', gamePath),
 });

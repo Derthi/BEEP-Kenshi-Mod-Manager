@@ -366,6 +366,51 @@ generateConflictsBtn.addEventListener('click', async () => {
   generateConflictsBtn.disabled = false;
 });
 
+// ===== Update Check =====
+
+const updateBtn = document.getElementById('update-btn');
+updateBtn.addEventListener('click', async () => {
+  setStatus('Checking for updates...');
+  updateBtn.disabled = true;
+
+  const info = await window.api.checkForUpdate();
+  if (!info) {
+    setStatus('Could not check for updates.', 'error');
+    updateBtn.disabled = false;
+    return;
+  }
+
+  if (!info.hasUpdate) {
+    setStatus(`You're on the latest version (v${info.currentVersion}).`, 'success');
+    updateBtn.disabled = false;
+    return;
+  }
+
+  if (!info.downloadUrl) {
+    setStatus(`Update v${info.latestVersion} available! Download manually from GitHub.`, 'success');
+    updateBtn.disabled = false;
+    return;
+  }
+
+  const confirmed = await showConfirmModal(
+    `Update available: v${info.currentVersion} → v${info.latestVersion}\n\nDownload and install? The app will restart automatically.`
+  );
+  if (!confirmed) {
+    updateBtn.disabled = false;
+    setStatus('Update cancelled.');
+    return;
+  }
+
+  setStatus(`Downloading v${info.latestVersion}...`);
+  const result = await window.api.downloadUpdate(info.downloadUrl);
+  if (result.success) {
+    setStatus('Update installed! Restarting...', 'success');
+  } else {
+    setStatus('Update failed: ' + result.error, 'error');
+    updateBtn.disabled = false;
+  }
+});
+
 // ===== Status Bar =====
 
 function setStatus(msg, type) {

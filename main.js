@@ -6,6 +6,7 @@ const loadOrder = require('./lib/load-order');
 const steamDetect = require('./lib/steam-detect');
 const steamApi = require('./lib/steam-api');
 const conflictDetector = require('./lib/conflict-detector');
+const updater = require('./lib/updater');
 
 let mainWindow;
 
@@ -111,6 +112,24 @@ ipcMain.handle('launch-game', (_event, gamePath) => {
 // Conflict detection
 ipcMain.handle('generate-conflicts', (_event, activeMods) => {
   return conflictDetector.detectConflicts(activeMods);
+});
+
+// Updater
+ipcMain.handle('check-for-update', () => {
+  return updater.checkForUpdate();
+});
+
+ipcMain.handle('download-update', async (_event, downloadUrl) => {
+  const appPath = path.dirname(app.getPath('exe'));
+  const result = await updater.downloadAndApplyUpdate(downloadUrl, appPath);
+  if (result.success) {
+    // Relaunch after a short delay
+    setTimeout(() => {
+      app.relaunch();
+      app.exit(0);
+    }, 1000);
+  }
+  return result;
 });
 
 app.whenReady().then(createWindow);
