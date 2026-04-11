@@ -1,0 +1,33 @@
+{
+  "name": "kenshi-mod-manager",
+  "version": "1.0.0",
+  "description": "A Kenshi mod load order manager with category sorting, conflict detection, AI-assisted sorting, and mod packs",
+  "main": "main.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Derthi/kenshi-mod-manager"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win dir"
+  },
+  "build": {
+    "appId": "com.kenshi.mod-sorter",
+    "productName": "Kenshi Mod Sorter",
+    "win": {
+      "target": "dir",
+      "signAndEditExecutable": false
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "lib/**/*",
+      "renderer/**/*"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.0"
+  }
+}

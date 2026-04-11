@@ -1,0 +1,18 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('api', {
+  getConfig: () => ipcRenderer.invoke('get-config'),
+  detectSteam: () => ipcRenderer.invoke('detect-steam'),
+  saveConfig: (config) => ipcRenderer.invoke('save-config', config),
+  pickFolder: () => ipcRenderer.invoke('pick-folder'),
+  discoverMods: (config) => ipcRenderer.invoke('discover-mods', config),
+  saveLoadOrder: (data) => ipcRenderer.invoke('save-load-order', data),
+  getPacks: () => ipcRenderer.invoke('get-packs'),
+  savePack: (pack) => ipcRenderer.invoke('save-pack', pack),
+  deletePack: (name) => ipcRenderer.invoke('delete-pack', name),
+  fetchWorkshopDetails: (ids) => ipcRenderer.invoke('fetch-workshop-details', ids),
+  saveFileDialog: (name) => ipcRenderer.invoke('save-file-dialog', name),
+  writeFile: (path, content) => ipcRenderer.invoke('write-file', path, content),
+  generateConflicts: (activeMods) => ipcRenderer.invoke('generate-conflicts', activeMods),
+  launchGame: (gamePath) => ipcRenderer.invoke('launch-game', gamePath),
+});
