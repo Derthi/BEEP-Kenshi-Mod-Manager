@@ -2,6 +2,8 @@
 
 A lightweight Electron-based mod load order manager for [Kenshi](https://store.steampowered.com/app/233860/Kenshi/). Organize your mods into categories, detect conflicts, and get AI-assisted sorting suggestions.
 
+[Steam Workshop Guide](https://steamcommunity.com/sharedfiles/filedetails/?id=3704937622)
+
 ## Features
 
 - **Category-based sorting** - Organize mods into customizable categories (UI, Animations, Races, Weapons, etc.) displayed as columns. Load order reads left-to-right, top-to-bottom.
