@@ -1026,6 +1026,101 @@ body::after {
   padding: 1px 0 1px 8px;
 }
 
+.conflict-prop-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.conflict-prop-header:hover {
+  color: #bbb;
+}
+
+.conflict-prop-arrow {
+  font-size: 7px;
+  color: #555;
+  width: 10px;
+  flex-shrink: 0;
+}
+
+.conflict-values-list {
+  margin: 2px 0 4px 14px;
+  padding: 3px 6px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 3px;
+  border-left: 2px solid #333;
+}
+
+.conflict-value-row {
+  display: flex;
+  gap: 6px;
+  font-size: 9px;
+  padding: 1px 0;
+}
+
+.conflict-value-mod {
+  color: #999;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.conflict-value-val {
+  color: #ccc;
+  word-break: break-all;
+}
+
+.conflict-value-winner {
+  font-size: 10px;
+}
+
+.conflict-value-winner .conflict-value-mod {
+  color: #6bcc6a;
+}
+
+.conflict-value-winner .conflict-value-val {
+  color: #6bcc6a;
+  font-weight: 600;
+}
+
+.conflict-value-divider {
+  border-top: 1px solid #333;
+  margin: 3px 0;
+}
+
+body.kenshi-theme .conflict-prop-header:hover {
+  color: #e8dcc8;
+}
+
+body.kenshi-theme .conflict-prop-arrow {
+  color: #7a6a55;
+}
+
+body.kenshi-theme .conflict-values-list {
+  background: rgba(0,0,0,0.12);
+  border-left-color: #5a4a35;
+}
+
+body.kenshi-theme .conflict-value-mod {
+  color: #baa888;
+}
+
+body.kenshi-theme .conflict-value-val {
+  color: #e0d4be;
+}
+
+body.kenshi-theme .conflict-value-winner .conflict-value-mod {
+  color: #7ad070;
+}
+
+body.kenshi-theme .conflict-value-winner .conflict-value-val {
+  color: #7ad070;
+}
+
+body.kenshi-theme .conflict-value-divider {
+  border-top-color: #5a4a35;
+}
+
 /* Card conflict highlights */
 .mod-card.conflict-highlight-green {
   background: rgba(60, 140, 60, 0.15);
@@ -1314,6 +1409,304 @@ body.kenshi-theme .tutorial-checkbox input {
 
 body.kenshi-theme .update-version {
   color: #baa888;
+}
+
+/* ===== Zone Map Modal ===== */
+.zone-map-modal {
+  width: 90vw;
+  height: 85vh;
+  max-width: 1400px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.zone-map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid #252528;
+  flex-shrink: 0;
+}
+
+.zone-map-header h3 {
+  font-size: 14px;
+  color: #8ab4f8;
+}
+
+.zone-map-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.zone-map-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.zone-map-container {
+  flex: 1;
+  overflow: hidden;
+  background: #111;
+  position: relative;
+  cursor: grab;
+}
+
+.zone-map-container.dragging {
+  cursor: grabbing;
+}
+
+.zone-map-wrapper {
+  position: relative;
+  transform-origin: 0 0;
+  display: inline-block;
+}
+
+.zone-map-img {
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.zone-map-overlays {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.zone-map-highlight {
+  position: absolute;
+  border: 2px solid #e74c3c;
+  background: rgba(231, 76, 60, 0.2);
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+  border-radius: 1px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.zone-map-highlight.selected {
+  border-color: #f1c40f;
+  background: rgba(241, 196, 15, 0.25);
+  box-shadow: 0 0 12px rgba(241, 196, 15, 0.5);
+  z-index: 1;
+}
+
+.zone-map-label {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #e74c3c;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.zone-map-highlight.selected .zone-map-label {
+  color: #f1c40f;
+}
+
+/* Sidebar */
+.zone-map-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  border-left: 1px solid #252528;
+  display: flex;
+  flex-direction: column;
+  background: #141418;
+}
+
+.zone-sidebar-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8ab4f8;
+  padding: 8px 10px;
+  border-bottom: 1px solid #252528;
+  flex-shrink: 0;
+}
+
+.zone-sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.zone-conflict-item {
+  padding: 6px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #1e1e22;
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.zone-conflict-item:hover {
+  background: #1e1e22;
+}
+
+.zone-conflict-item.active {
+  background: #252528;
+  border-left: 3px solid #8ab4f8;
+}
+
+.zone-conflict-name {
+  color: #ccc;
+}
+
+.zone-conflict-count {
+  background: #553030;
+  color: #e74c3c;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.zone-conflict-detail {
+  padding: 6px 10px 8px 14px;
+  background: #1a1a1e;
+  border-bottom: 1px solid #1e1e22;
+  font-size: 10px;
+}
+
+.zone-detail-mod {
+  padding: 2px 0;
+  color: #999;
+}
+
+.zone-detail-mod.winner {
+  color: #6bcc6a;
+  font-weight: 600;
+}
+
+.zone-no-conflicts {
+  color: #666;
+  font-size: 11px;
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.zone-mod-group {
+  border-bottom: 1px solid #252528;
+}
+
+.zone-mod-header {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6bcc6a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.zone-mod-header:hover {
+  background: #1e1e22;
+}
+
+.zone-mod-arrow {
+  font-size: 8px;
+  color: #555;
+  width: 10px;
+}
+
+.zone-mod-count {
+  font-weight: 400;
+  color: #888;
+  font-size: 10px;
+  margin-left: auto;
+}
+
+.zone-mod-zones {
+  padding-left: 6px;
+}
+
+body.kenshi-theme .zone-mod-group {
+  border-bottom-color: #504535;
+}
+
+body.kenshi-theme .zone-mod-header {
+  color: #7ad070;
+}
+
+body.kenshi-theme .zone-mod-header:hover {
+  background: #504535;
+}
+
+body.kenshi-theme .zone-mod-count {
+  color: #baa888;
+}
+
+/* Clickable zone file names */
+.conflict-prop-zone {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.conflict-prop-zone:hover {
+  color: #8ab4f8;
+}
+
+/* Kenshi theme overrides */
+body.kenshi-theme .zone-map-header {
+  border-bottom-color: #6a5a45;
+}
+
+body.kenshi-theme .zone-map-header h3 {
+  color: #f4e4c4;
+}
+
+body.kenshi-theme .zone-map-sidebar {
+  background: #3e3428;
+  border-left-color: #6a5a45;
+}
+
+body.kenshi-theme .zone-sidebar-title {
+  color: #f4e4c4;
+  border-bottom-color: #6a5a45;
+}
+
+body.kenshi-theme .zone-conflict-item {
+  border-bottom-color: #504535;
+}
+
+body.kenshi-theme .zone-conflict-item:hover {
+  background: #504535;
+}
+
+body.kenshi-theme .zone-conflict-item.active {
+  background: #5a4a38;
+  border-left-color: #f4e4c4;
+}
+
+body.kenshi-theme .zone-conflict-name {
+  color: #e0d4be;
+}
+
+body.kenshi-theme .zone-conflict-detail {
+  background: #342a1e;
+  border-bottom-color: #504535;
+}
+
+body.kenshi-theme .zone-detail-mod {
+  color: #baa888;
+}
+
+body.kenshi-theme .zone-detail-mod.winner {
+  color: #7ad070;
+}
+
+body.kenshi-theme .conflict-prop-zone:hover {
+  color: #f4e4c4;
 }
 
 /* ===== Theme Toggle Switch ===== */

@@ -508,6 +508,382 @@ async function autoCheckForUpdate() {
   updateModal.classList.remove('hidden');
 }
 
+// ===== Zone Map Modal =====
+
+const zoneMapModal = document.getElementById('zone-map-modal');
+const zoneMapClose = document.getElementById('zone-map-close');
+const zoneMapContainer = document.getElementById('zone-map-container');
+const zoneMapWrapper = document.getElementById('zone-map-wrapper');
+const zoneMapImg = document.getElementById('zone-map-img');
+const zoneMapOverlays = document.getElementById('zone-map-overlays');
+const zoneSidebarList = document.getElementById('zone-sidebar-list');
+const zoneShowAllBtn = document.getElementById('zone-show-all-btn');
+const zoneLayerBtn = document.getElementById('zone-layer-btn');
+const mapBtn = document.getElementById('map-btn');
+
+let mapScale = 1;
+let mapPanX = 0, mapPanY = 0;
+let mapDragging = false;
+let mapDragStartX = 0, mapDragStartY = 0;
+let mapPanStartX = 0, mapPanStartY = 0;
+let showAllZones = true;
+let selectedZoneKey = null;
+let zoneLayer = 'exterior'; // 'exterior' or 'interior'
+let zoneConflicts = []; // [{ key, zx, zy, mods: [{ filename, winner }] }]
+let allZoneConflicts = { exterior: [], interior: [] };
+
+zoneMapClose.addEventListener('click', () => zoneMapModal.classList.add('hidden'));
+zoneMapModal.addEventListener('click', (e) => {
+  if (e.target === zoneMapModal) zoneMapModal.classList.add('hidden');
+});
+
+// Map button handler
+mapBtn.addEventListener('click', () => {
+  if (!conflictData) {
+    setStatus('Run "Check Conflicts" first.', 'error');
+    return;
+  }
+  openZoneMap();
+});
+
+function openZoneMap(focusZone) {
+  // Extract zone-mappable conflicts, separated by layer
+  const layers = { exterior: {}, interior: {} };
+
+  const detailSeen = {}; // layer:zoneKey -> Set of detailKeys
+
+  for (const [modFile, conflicts] of Object.entries(conflictData.modConflicts)) {
+    for (const c of conflicts) {
+      if (!c.type.startsWith('LEVEL:') || !c.zones) continue;
+
+      const layer = c.type === 'LEVEL:INTERIORS' ? 'interior' : 'exterior';
+      const zoneMap = layers[layer];
+
+      for (const z of c.zones) {
+        const key = `${z.zx},${z.zy}`;
+        if (!zoneMap[key]) {
+          zoneMap[key] = { key: `zone.${z.zx}.${z.zy}`, zx: z.zx, zy: z.zy, mods: {}, winner: c.winner, details: [] };
+        }
+        for (const m of c.allMods) {
+          zoneMap[key].mods[m.filename] = { filename: m.filename, loadOrder: m.loadOrder };
+        }
+        zoneMap[key].winner = c.winner;
+
+        const seenKey = `${layer}:${key}`;
+        if (!detailSeen[seenKey]) detailSeen[seenKey] = new Set();
+        const detailKey = `${c.type}|${c.name}|${c.key}`;
+        if (!detailSeen[seenKey].has(detailKey)) {
+          detailSeen[seenKey].add(detailKey);
+          // Cap details to prevent massive lists
+          if (zoneMap[key].details.length < 50) {
+            zoneMap[key].details.push({ key: detailKey, type: c.type, name: c.name, prop: c.key, values: c.values, winner: c.winner });
+          }
+        }
+      }
+    }
+  }
+
+  const sortZones = (map) => Object.values(map).sort((a, b) => a.zy !== b.zy ? a.zy - b.zy : a.zx - b.zx);
+  allZoneConflicts.exterior = sortZones(layers.exterior);
+  allZoneConflicts.interior = sortZones(layers.interior);
+  zoneConflicts = allZoneConflicts[zoneLayer];
+
+  // Reset view
+  mapScale = 1;
+  mapPanX = 0;
+  mapPanY = 0;
+  // Convert zone filename to key format
+  let focusKey = null;
+  if (focusZone) {
+    const m = focusZone.match(/zone\.(\d+)\.(\d+)/i);
+    if (m) focusKey = `${parseInt(m[1])},${parseInt(m[2])}`;
+  }
+  selectedZoneKey = focusKey;
+  showAllZones = true;
+  zoneLayer = 'exterior';
+  zoneShowAllBtn.textContent = 'Hide All Zones';
+  zoneLayerBtn.textContent = 'Exterior';
+
+  zoneMapModal.classList.remove('hidden');
+
+  const init = () => {
+    updateMapTransform();
+    renderZoneOverlays();
+    renderZoneSidebar();
+    if (focusKey) selectZone(focusKey);
+  };
+
+  if (zoneMapImg.complete) {
+    requestAnimationFrame(init);
+  } else {
+    zoneMapImg.onload = init;
+  }
+}
+
+function updateMapTransform() {
+  const containerW = zoneMapContainer.clientWidth;
+  const containerH = zoneMapContainer.clientHeight;
+  // Set image size based on scale
+  const baseSize = Math.min(containerW, containerH);
+  const imgSize = baseSize * mapScale;
+  zoneMapImg.style.width = imgSize + 'px';
+  zoneMapImg.style.height = imgSize + 'px';
+  // Apply pan via scroll
+  zoneMapWrapper.style.width = imgSize + 'px';
+  zoneMapWrapper.style.height = imgSize + 'px';
+}
+
+function renderZoneOverlays() {
+  zoneMapOverlays.innerHTML = '';
+  const imgW = zoneMapImg.clientWidth;
+  const imgH = zoneMapImg.clientHeight;
+  if (!imgW || !imgH) return;
+
+  const zoneW = imgW / 64;
+  const zoneH = imgH / 64;
+
+  for (const zc of zoneConflicts) {
+    const zcKey = `${zc.zx},${zc.zy}`;
+    if (!showAllZones && zcKey !== selectedZoneKey) continue;
+
+    const el = document.createElement('div');
+    el.className = 'zone-map-highlight';
+    if (zcKey === selectedZoneKey) el.classList.add('selected');
+    el.style.left = (zc.zx * zoneW) + 'px';
+    el.style.top = (zc.zy * zoneH) + 'px';
+    el.style.width = zoneW + 'px';
+    el.style.height = zoneH + 'px';
+
+    const label = document.createElement('div');
+    label.className = 'zone-map-label';
+    const modCount = Object.keys(zc.mods).length;
+    label.textContent = `${zc.zx},${zc.zy} (${modCount})`;
+    el.appendChild(label);
+
+    el.addEventListener('click', () => selectZone(zcKey));
+    zoneMapOverlays.appendChild(el);
+  }
+}
+
+function renderZoneSidebar() {
+  zoneSidebarList.innerHTML = '';
+
+  if (zoneConflicts.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'zone-no-conflicts';
+    empty.textContent = `No ${zoneLayer} conflicts detected.`;
+    zoneSidebarList.appendChild(empty);
+    return;
+  }
+
+  // Group zones by winning mod
+  const byWinner = {};
+  for (const zc of zoneConflicts) {
+    const winnerName = zc.winner.replace(/\.mod$/i, '');
+    if (!byWinner[winnerName]) byWinner[winnerName] = { filename: zc.winner, zones: [] };
+    byWinner[winnerName].zones.push(zc);
+  }
+
+  for (const [modName, group] of Object.entries(byWinner)) {
+    const modGroup = document.createElement('div');
+    modGroup.className = 'zone-mod-group';
+
+    // Mod header (expandable)
+    const modHeader = document.createElement('div');
+    modHeader.className = 'zone-mod-header';
+
+    const arrow = document.createElement('span');
+    arrow.className = 'zone-mod-arrow';
+    arrow.textContent = '\u25BC';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = modName;
+
+    const countSpan = document.createElement('span');
+    countSpan.className = 'zone-mod-count';
+    countSpan.textContent = `${group.zones.length} zones`;
+
+    modHeader.append(arrow, nameSpan, countSpan);
+
+    // Zone sub-list
+    const zonesDiv = document.createElement('div');
+    zonesDiv.className = 'zone-mod-zones';
+
+    for (const zc of group.zones) {
+      const zcKey = `${zc.zx},${zc.zy}`;
+      const item = document.createElement('div');
+      item.className = 'zone-conflict-item';
+      if (zcKey === selectedZoneKey) item.classList.add('active');
+
+      const name = document.createElement('span');
+      name.className = 'zone-conflict-name';
+      name.textContent = `zone ${zc.zx}, ${zc.zy}`;
+
+      const count = document.createElement('span');
+      count.className = 'zone-conflict-count';
+      count.textContent = Object.keys(zc.mods).length + ' mods';
+
+      item.append(name, count);
+      item.addEventListener('click', () => selectZone(zcKey));
+      zonesDiv.appendChild(item);
+
+      // Detail panel (shown when selected)
+      if (zcKey === selectedZoneKey) {
+        const detail = document.createElement('div');
+        detail.className = 'zone-conflict-detail';
+
+        // Other mods involved
+        const modsArr = Object.values(zc.mods).sort((a, b) => a.loadOrder - b.loadOrder);
+        for (const m of modsArr) {
+          const row = document.createElement('div');
+          row.className = 'zone-detail-mod';
+          if (m.filename === zc.winner) row.classList.add('winner');
+          const mName = m.filename.replace(/\.mod$/i, '');
+          row.textContent = `#${m.loadOrder} ${mName}${m.filename === zc.winner ? ' (winner)' : ''}`;
+          detail.appendChild(row);
+        }
+
+        // Conflict property details
+        if (zc.details && zc.details.length > 0) {
+          const detailHeader = document.createElement('div');
+          detailHeader.style.cssText = 'margin-top:6px;padding-top:4px;border-top:1px solid #333;font-size:9px;color:#888;';
+          detailHeader.textContent = `${zc.details.length} conflicting properties:`;
+          detail.appendChild(detailHeader);
+
+          for (const d of zc.details.slice(0, 10)) {
+            const dRow = document.createElement('div');
+            dRow.style.cssText = 'font-size:9px;color:#999;padding:1px 0 1px 6px;';
+            dRow.textContent = `${d.name} → ${d.prop}`;
+            detail.appendChild(dRow);
+          }
+          if (zc.details.length > 10) {
+            const more = document.createElement('div');
+            more.style.cssText = 'font-size:9px;color:#666;padding:1px 0 1px 6px;';
+            more.textContent = `...and ${zc.details.length - 10} more`;
+            detail.appendChild(more);
+          }
+        }
+
+        zonesDiv.appendChild(detail);
+      }
+    }
+
+    modHeader.addEventListener('click', () => {
+      const isOpen = !zonesDiv.classList.contains('hidden');
+      zonesDiv.classList.toggle('hidden');
+      arrow.textContent = isOpen ? '\u25B6' : '\u25BC';
+    });
+
+    modGroup.append(modHeader, zonesDiv);
+    zoneSidebarList.appendChild(modGroup);
+  }
+}
+
+function selectZone(key) {
+  selectedZoneKey = key;
+  renderZoneOverlays();
+  renderZoneSidebar();
+
+  // Pan map to center the selected zone
+  const zc = zoneConflicts.find((z) => `${z.zx},${z.zy}` === key);
+  if (zc) {
+    const imgW = zoneMapImg.clientWidth;
+    const imgH = zoneMapImg.clientHeight;
+    const containerW = zoneMapContainer.clientWidth;
+    const containerH = zoneMapContainer.clientHeight;
+    const zoneW = imgW / 64;
+    const zoneH = imgH / 64;
+    const centerX = (zc.zx + 0.5) * zoneW - containerW / 2;
+    const centerY = (zc.zy + 0.5) * zoneH - containerH / 2;
+    zoneMapContainer.scrollLeft = Math.max(0, centerX);
+    zoneMapContainer.scrollTop = Math.max(0, centerY);
+  }
+
+  // Expand the parent mod group and scroll sidebar to the active item
+  const activeItem = zoneSidebarList.querySelector('.zone-conflict-item.active');
+  if (activeItem) {
+    const parentZones = activeItem.closest('.zone-mod-zones');
+    if (parentZones && parentZones.classList.contains('hidden')) {
+      parentZones.classList.remove('hidden');
+      const arrow = parentZones.previousElementSibling?.querySelector('.zone-mod-arrow');
+      if (arrow) arrow.textContent = '\u25BC';
+    }
+    activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// Show All toggle
+zoneShowAllBtn.addEventListener('click', () => {
+  showAllZones = !showAllZones;
+  zoneShowAllBtn.textContent = showAllZones ? 'Hide All Zones' : 'Show All Zones';
+  renderZoneOverlays();
+});
+
+// Layer toggle (exterior / interior)
+zoneLayerBtn.addEventListener('click', () => {
+  zoneLayer = zoneLayer === 'exterior' ? 'interior' : 'exterior';
+  zoneLayerBtn.textContent = zoneLayer === 'exterior' ? 'Exterior' : 'Interior';
+  zoneConflicts = allZoneConflicts[zoneLayer];
+  selectedZoneKey = null;
+  renderZoneOverlays();
+  renderZoneSidebar();
+});
+
+// Zoom via mouse wheel
+zoneMapContainer.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? -0.2 : 0.2;
+  const oldScale = mapScale;
+  mapScale = Math.max(0.5, Math.min(6, mapScale + delta));
+
+  // Zoom toward cursor position
+  const rect = zoneMapContainer.getBoundingClientRect();
+  const mx = e.clientX - rect.left + zoneMapContainer.scrollLeft;
+  const my = e.clientY - rect.top + zoneMapContainer.scrollTop;
+  const ratio = mapScale / oldScale;
+
+  updateMapTransform();
+  renderZoneOverlays();
+
+  // Adjust scroll to keep cursor point stable
+  zoneMapContainer.scrollLeft = mx * ratio - (e.clientX - rect.left);
+  zoneMapContainer.scrollTop = my * ratio - (e.clientY - rect.top);
+}, { passive: false });
+
+// Pan via mouse drag
+zoneMapContainer.addEventListener('mousedown', (e) => {
+  if (e.target.classList.contains('zone-map-highlight') || e.target.classList.contains('zone-map-label')) return;
+  mapDragging = true;
+  mapDragStartX = e.clientX;
+  mapDragStartY = e.clientY;
+  mapPanStartX = zoneMapContainer.scrollLeft;
+  mapPanStartY = zoneMapContainer.scrollTop;
+  zoneMapContainer.classList.add('dragging');
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!mapDragging) return;
+  zoneMapContainer.scrollLeft = mapPanStartX - (e.clientX - mapDragStartX);
+  zoneMapContainer.scrollTop = mapPanStartY - (e.clientY - mapDragStartY);
+});
+
+document.addEventListener('mouseup', () => {
+  if (mapDragging) {
+    mapDragging = false;
+    zoneMapContainer.classList.remove('dragging');
+  }
+});
+
+// Keep showZoneOnMap for clicking from conflict view
+function showZoneOnMap(zoneFile) {
+  if (!conflictData) return;
+  openZoneMap(zoneFile);
+}
+
+// Make container scrollable for pan
+zoneMapContainer.style.overflow = 'auto';
+
 // ===== Status Bar =====
 
 function setStatus(msg, type) {
@@ -1990,7 +2366,95 @@ function renderPropertyList(container, conflicts) {
     for (const c of entries) {
       const prop = document.createElement('div');
       prop.className = 'conflict-prop';
-      prop.textContent = c.key;
+
+      const hasValues = c.values && Object.keys(c.values).length > 0;
+
+      // Check if this is a clickable zone file
+      const isZone = /^zone\.\d+\.\d+\.zone$/i.test(c.key);
+
+      if (hasValues) {
+        // Expandable property with value details
+        const propHeader = document.createElement('div');
+        propHeader.className = 'conflict-prop-header';
+
+        const arrow = document.createElement('span');
+        arrow.className = 'conflict-prop-arrow';
+        arrow.textContent = '\u25B6';
+
+        const keySpan = document.createElement('span');
+        keySpan.textContent = c.key;
+        if (isZone) {
+          keySpan.className = 'conflict-prop-zone';
+          keySpan.title = 'Click to view on map';
+          keySpan.addEventListener('click', (e) => { e.stopPropagation(); showZoneOnMap(c.key); });
+        }
+
+        propHeader.append(arrow, keySpan);
+
+        const valuesDiv = document.createElement('div');
+        valuesDiv.className = 'conflict-values-list hidden';
+
+        // Winner row first (green, larger)
+        const winnerVal = c.values[c.winner];
+        if (winnerVal !== undefined) {
+          const winnerName = c.winner.replace(/\.mod$/i, '');
+          const winRow = document.createElement('div');
+          winRow.className = 'conflict-value-row conflict-value-winner';
+
+          const winMod = document.createElement('span');
+          winMod.className = 'conflict-value-mod';
+          winMod.textContent = winnerName + ':';
+
+          const winVal = document.createElement('span');
+          winVal.className = 'conflict-value-val';
+          winVal.textContent = winnerVal;
+
+          winRow.append(winMod, winVal);
+          valuesDiv.appendChild(winRow);
+
+          // Divider
+          const divider = document.createElement('div');
+          divider.className = 'conflict-value-divider';
+          valuesDiv.appendChild(divider);
+        }
+
+        // Other mod values
+        for (const [modFile, val] of Object.entries(c.values)) {
+          if (modFile === c.winner) continue;
+          const modName = modFile.replace(/\.mod$/i, '');
+          const row = document.createElement('div');
+          row.className = 'conflict-value-row';
+
+          const modSpan = document.createElement('span');
+          modSpan.className = 'conflict-value-mod';
+          modSpan.textContent = modName + ':';
+
+          const valSpan = document.createElement('span');
+          valSpan.className = 'conflict-value-val';
+          valSpan.textContent = val;
+
+          row.append(modSpan, valSpan);
+          valuesDiv.appendChild(row);
+        }
+
+        propHeader.addEventListener('click', () => {
+          const open = !valuesDiv.classList.contains('hidden');
+          valuesDiv.classList.toggle('hidden');
+          arrow.textContent = open ? '\u25B6' : '\u25BC';
+        });
+
+        prop.append(propHeader, valuesDiv);
+      } else if (isZone) {
+        const keySpan = document.createElement('span');
+        keySpan.className = 'conflict-prop-zone';
+        keySpan.textContent = c.key;
+        keySpan.title = 'Click to view on map';
+        keySpan.addEventListener('click', () => showZoneOnMap(c.key));
+        prop.appendChild(keySpan);
+      } else {
+        prop.textContent = c.key;
+      }
+
       item.appendChild(prop);
     }
 
