@@ -495,7 +495,7 @@ async function autoCheckForUpdate() {
   const downloadLink = document.getElementById('update-download-link');
   const githubLink = document.getElementById('update-github-link');
 
-  const releaseUrl = info.releaseUrl || 'https://github.com/Derthi/Kenshi-Mod-Manager/releases';
+  const releaseUrl = info.releaseUrl || 'https://github.com/Derthi/BEEP-Kenshi-Mod-Manager/releases';
 
   if (info.downloadUrl) {
     downloadLink.onclick = () => { window.open(info.downloadUrl); };
