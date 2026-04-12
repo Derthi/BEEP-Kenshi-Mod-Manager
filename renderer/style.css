@@ -860,6 +860,10 @@ body {
   color: #e74c3c;
 }
 
+.conflict-mod-dead {
+  color: #c8b432;
+}
+
 .conflict-mod-self {
   font-weight: 600;
 }
@@ -958,6 +962,11 @@ body {
 .mod-card.conflict-highlight-red {
   background: rgba(140, 60, 60, 0.15);
   border-left-color: #a54a4a !important;
+}
+
+.mod-card.conflict-highlight-yellow {
+  background: rgba(200, 180, 50, 0.15);
+  border-left-color: #c8b432 !important;
 }
 
 /* Dependency highlights */

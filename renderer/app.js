@@ -727,6 +727,8 @@ function createModCard(mod, catColor, globalOrder) {
         card.classList.add('conflict-highlight-green');
       } else if (relationship === 'overwritten') {
         card.classList.add('conflict-highlight-red');
+      } else if (relationship === 'dead') {
+        card.classList.add('conflict-highlight-yellow');
       }
     }
   }
@@ -1665,22 +1667,24 @@ function updateDetailPanel() {
 function getConflictRelationship(selfFilename, otherFilename, selfConflicts) {
   // Check if these two mods share any conflict
   let hasConflict = false;
-  let selfOrder = 0;
-  let otherOrder = 0;
+  let selfWinsAny = false;
+  let otherWinsAny = false;
 
   for (const c of selfConflicts) {
-    const selfEntry = c.allMods.find((m) => m.filename === selfFilename);
     const otherEntry = c.allMods.find((m) => m.filename === otherFilename);
     if (!otherEntry) continue;
     hasConflict = true;
-    selfOrder = selfEntry.loadOrder;
-    otherOrder = otherEntry.loadOrder;
-    break;
+    if (c.winner === selfFilename) selfWinsAny = true;
+    if (c.winner === otherFilename) otherWinsAny = true;
   }
 
   if (!hasConflict) return null;
-  // Higher load order number = loads later = wins
-  return selfOrder > otherOrder ? 'overwriting' : 'overwritten';
+  // If self is the overall winner for any shared conflict
+  if (selfWinsAny) return 'overwriting';
+  // If other is the overall winner for any shared conflict
+  if (otherWinsAny) return 'overwritten';
+  // Neither wins — a third mod overrides both
+  return 'dead';
 }
 
 function renderConflictsTab() {
@@ -1715,22 +1719,14 @@ function renderConflictsTab() {
     return;
   }
 
-  // Get selected mod's load order position
-  const selfEntry = modConflicts[0]?.allMods?.find((m) => m.filename === selectedMod.filename);
-  const selfOrder = selfEntry ? selfEntry.loadOrder : 0;
-
-  // Group conflicts by other mod, using load order to determine direction
-  const byMod = {}; // otherModFilename -> { conflicts: [], loadOrder, thisModWins }
+  // Group conflicts by other mod
+  const byMod = {}; // otherModFilename -> { conflicts: [], loadOrder }
 
   for (const c of modConflicts) {
     for (const m of c.allMods) {
       if (m.filename === selectedMod.filename) continue;
       if (!byMod[m.filename]) {
-        byMod[m.filename] = {
-          conflicts: [],
-          loadOrder: m.loadOrder,
-          thisModWins: selfOrder > m.loadOrder, // higher load order = wins
-        };
+        byMod[m.filename] = { conflicts: [], loadOrder: m.loadOrder };
       }
       byMod[m.filename].conflicts.push(c);
     }
@@ -1745,6 +1741,11 @@ function renderConflictsTab() {
   for (const otherMod of modNames) {
     const info = byMod[otherMod];
     const displayName = otherMod.replace(/\.mod$/i, '');
+
+    // Categorize conflicts by winner
+    const greenConflicts = info.conflicts.filter((c) => c.winner === selectedMod.filename);
+    const redConflicts = info.conflicts.filter((c) => c.winner === otherMod);
+    const deadConflicts = info.conflicts.filter((c) => c.winner !== selectedMod.filename && c.winner !== otherMod);
 
     // Dropdown container
     const dropdown = document.createElement('div');
@@ -1766,36 +1767,82 @@ function renderConflictsTab() {
     countEl.className = 'conflict-count-badge';
     countEl.textContent = info.conflicts.length;
 
-    const statusEl = document.createElement('span');
-    statusEl.style.marginLeft = '6px';
-    statusEl.style.fontSize = '10px';
-    if (info.thisModWins) {
-      statusEl.className = 'conflict-mod-winner';
-      statusEl.textContent = `this mod overrides (${info.conflicts.length})`;
-    } else {
-      statusEl.className = 'conflict-mod-loser';
-      statusEl.textContent = `overrides this mod (${info.conflicts.length})`;
+    // Build header status labels based on winner categories
+    const statusWrap = document.createElement('span');
+    statusWrap.style.marginLeft = '6px';
+    statusWrap.style.fontSize = '10px';
+
+    if (greenConflicts.length > 0) {
+      const s = document.createElement('span');
+      s.className = 'conflict-mod-winner';
+      s.textContent = `this mod overrides (${greenConflicts.length})`;
+      statusWrap.appendChild(s);
+    }
+    if (redConflicts.length > 0) {
+      if (statusWrap.childNodes.length > 0) statusWrap.append(' · ');
+      const s = document.createElement('span');
+      s.className = 'conflict-mod-loser';
+      s.textContent = `overrides this mod (${redConflicts.length})`;
+      statusWrap.appendChild(s);
+    }
+    if (deadConflicts.length > 0) {
+      if (statusWrap.childNodes.length > 0) statusWrap.append(' · ');
+      const s = document.createElement('span');
+      s.className = 'conflict-mod-dead';
+      s.textContent = `both overridden (${deadConflicts.length})`;
+      statusWrap.appendChild(s);
     }
 
-    header.append(arrow, nameEl, countEl, statusEl);
+    header.append(arrow, nameEl, countEl, statusWrap);
 
     // Body (hidden by default)
     const body = document.createElement('div');
     body.className = 'conflict-dropdown-body hidden';
 
-    const sec = document.createElement('div');
-    sec.className = 'conflict-sub-section';
-    const secTitle = document.createElement('div');
-    if (info.thisModWins) {
+    // Green section — this mod wins
+    if (greenConflicts.length > 0) {
+      const sec = document.createElement('div');
+      sec.className = 'conflict-sub-section';
+      const secTitle = document.createElement('div');
       secTitle.className = 'conflict-mod-winner';
-      secTitle.textContent = `${selectedMod.displayName} overrides ${displayName} on ${info.conflicts.length} properties:`;
-    } else {
-      secTitle.className = 'conflict-mod-loser';
-      secTitle.textContent = `${displayName} overrides ${selectedMod.displayName} on ${info.conflicts.length} properties:`;
+      secTitle.textContent = `${selectedMod.displayName} overrides ${displayName} on ${greenConflicts.length} properties:`;
+      sec.appendChild(secTitle);
+      renderPropertyList(sec, greenConflicts);
+      body.appendChild(sec);
     }
-    sec.appendChild(secTitle);
-    renderPropertyList(sec, info.conflicts);
-    body.appendChild(sec);
+
+    // Red section — other mod wins
+    if (redConflicts.length > 0) {
+      const sec = document.createElement('div');
+      sec.className = 'conflict-sub-section';
+      const secTitle = document.createElement('div');
+      secTitle.className = 'conflict-mod-loser';
+      secTitle.textContent = `${displayName} overrides ${selectedMod.displayName} on ${redConflicts.length} properties:`;
+      sec.appendChild(secTitle);
+      renderPropertyList(sec, redConflicts);
+      body.appendChild(sec);
+    }
+
+    // Yellow section — both overridden by a third mod
+    if (deadConflicts.length > 0) {
+      // Group dead conflicts by actual winner for clarity
+      const byWinner = {};
+      for (const c of deadConflicts) {
+        if (!byWinner[c.winner]) byWinner[c.winner] = [];
+        byWinner[c.winner].push(c);
+      }
+      for (const [winnerFile, conflicts] of Object.entries(byWinner)) {
+        const winnerName = winnerFile.replace(/\.mod$/i, '');
+        const sec = document.createElement('div');
+        sec.className = 'conflict-sub-section';
+        const secTitle = document.createElement('div');
+        secTitle.className = 'conflict-mod-dead';
+        secTitle.textContent = `Both overridden by ${winnerName} on ${conflicts.length} properties:`;
+        sec.appendChild(secTitle);
+        renderPropertyList(sec, conflicts);
+        body.appendChild(sec);
+      }
+    }
 
     header.addEventListener('click', () => {
       const isOpen = !body.classList.contains('hidden');
