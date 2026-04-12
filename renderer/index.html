@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' file: atom:; frame-src 'self' https://steamcommunity.com https://www.nexusmods.com;">
-  <title>Kenshi Mod Sorter</title>
+  <title>BEEP Kenshi Mod Manager</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -46,13 +46,25 @@
     <!-- Toolbar -->
     <div class="toolbar">
       <div class="toolbar-left">
-        <h2>Kenshi Mod Sorter</h2>
+        <img src="Beep.jpg" class="toolbar-logo" alt="BEEP">
+        <h2>BEEP Kenshi Mod Manager</h2>
         <span id="mod-count" class="mod-count"></span>
+        <div class="theme-toggle" title="Toggle Kenshi theme">
+          <span class="theme-label">Dark</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="theme-toggle-cb">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="theme-label">Kenshi</span>
+        </div>
       </div>
-      <div class="toolbar-right">
+      <div class="toolbar-center">
         <button id="ai-guide-btn" class="btn">AI Sorting Guide</button>
         <button id="ai-export-btn" class="btn">AI Sort Export</button>
         <button id="ai-import-btn" class="btn">AI Sort Import</button>
+      </div>
+      <div class="toolbar-right">
+        <button id="pin-uncat-btn" class="btn" title="Pin Uncategorized panel to left side">Pin Uncategorized</button>
         <button id="reset-categories-btn" class="btn btn-danger-subtle">Reset Categories</button>
         <button id="add-category-btn" class="btn">+ Add Category</button>
         <button id="layout-toggle-btn" class="btn btn-icon" title="Toggle horizontal/vertical layout">&#8646;</button>
@@ -139,6 +151,10 @@
         <webview id="workshop-view" class="guide-view hidden" src="https://steamcommunity.com/app/233860/workshop/"></webview>
       </div>
       <div id="panel-resize-handle" class="panel-resize-handle"></div>
+
+      <!-- Pinned Uncategorized Panel (left side, next to detail panel) -->
+      <div id="pinned-uncat-panel" class="pinned-uncat-panel hidden"></div>
+      <div id="pinned-resize-handle" class="panel-resize-handle hidden"></div>
 
       <!-- Category Columns -->
       <div id="category-columns" class="category-columns"></div>
@@ -292,6 +308,51 @@ Test.mod</pre>
       <div class="modal-buttons">
         <button id="ai-import-cancel" class="btn">Cancel</button>
         <button id="ai-import-ok" class="btn btn-primary">Apply Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutorial Modal -->
+  <div id="tutorial-modal" class="modal-overlay hidden">
+    <div class="modal-box tutorial-modal">
+      <img src="BeepFull.webp" class="tutorial-image" alt="Beep">
+      <div class="tutorial-content">
+        <h2 class="tutorial-heading">Beep!</h2>
+        <p class="tutorial-subtitle">Welcome to <strong>BEEP Kenshi Mod Manager</strong></p>
+        <p class="tutorial-tagline">Beep Enhances Every Playthrough</p>
+        <div class="tutorial-overview">
+          <h4>Quick Overview</h4>
+          <ul>
+            <li><strong>Organize mods</strong> — drag and drop mods between category columns to sort your load order</li>
+            <li><strong>Check conflicts</strong> — detect which mods override the same game data</li>
+            <li><strong>AI sorting</strong> — export your mod list, let AI suggest an order, then import it</li>
+            <li><strong>Pin Uncategorized</strong> — pin uncategorized mods to the right for easy sorting</li>
+            <li><strong>Kenshi theme</strong> — toggle between Dark and Kenshi themes in the toolbar</li>
+            <li><strong>Mod Packs</strong> — save and load complete mod configurations</li>
+          </ul>
+        </div>
+        <div class="tutorial-footer">
+          <label class="tutorial-checkbox">
+            <input type="checkbox" id="tutorial-dismiss-cb">
+            <span>Don't show this again</span>
+          </label>
+          <button id="tutorial-ok-btn" class="btn btn-primary">Got it!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Available Modal -->
+  <div id="update-modal" class="modal-overlay hidden">
+    <div class="modal-box update-modal">
+      <h3>Update Available!</h3>
+      <p class="update-version" id="update-version-text"></p>
+      <div class="update-links">
+        <a id="update-download-link" class="btn btn-primary" target="_blank">Download Update</a>
+        <a id="update-github-link" class="btn" target="_blank">View on GitHub</a>
+      </div>
+      <div class="modal-buttons">
+        <button id="update-dismiss-btn" class="btn">Later</button>
       </div>
     </div>
   </div>

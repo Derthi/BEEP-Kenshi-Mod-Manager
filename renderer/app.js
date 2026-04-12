@@ -8,6 +8,8 @@ let modOrders = {}; // categoryId -> [filename, ...]
 let contextTarget = null; // category id for context menu
 let verticalLayout = false;
 let conflictData = null; // { modConflicts, totalConflicts, parseErrors }
+let uncategorizedPinned = false;
+let tutorialDismissed = false;
 
 const UNCATEGORIZED = 'uncategorized';
 
@@ -208,6 +210,36 @@ layoutToggleBtn.addEventListener('click', () => {
   layoutToggleBtn.title = verticalLayout ? 'Switch to horizontal layout' : 'Switch to vertical layout';
 });
 
+// Theme toggle
+const themeToggleCb = document.getElementById('theme-toggle-cb');
+themeToggleCb.addEventListener('change', () => {
+  document.body.classList.toggle('kenshi-theme', themeToggleCb.checked);
+  persistConfig();
+});
+
+// Tutorial modal
+const tutorialModal = document.getElementById('tutorial-modal');
+const tutorialOkBtn = document.getElementById('tutorial-ok-btn');
+const tutorialDismissCb = document.getElementById('tutorial-dismiss-cb');
+
+tutorialOkBtn.addEventListener('click', () => {
+  tutorialModal.classList.add('hidden');
+  if (tutorialDismissCb.checked) {
+    tutorialDismissed = true;
+    persistConfig();
+  }
+});
+
+// Pin Uncategorized toggle
+const pinUncatBtn = document.getElementById('pin-uncat-btn');
+pinUncatBtn.addEventListener('click', () => {
+  uncategorizedPinned = !uncategorizedPinned;
+  pinUncatBtn.classList.toggle('btn-pinned-active', uncategorizedPinned);
+  pinUncatBtn.textContent = uncategorizedPinned ? 'Unpin Uncategorized' : 'Pin Uncategorized';
+  persistConfig();
+  renderColumns();
+});
+
 // ===== Panel Resize =====
 
 const resizeHandle = document.getElementById('panel-resize-handle');
@@ -218,6 +250,7 @@ resizeHandle.addEventListener('mousedown', (e) => {
   resizeHandle.classList.add('dragging');
   document.body.style.cursor = 'col-resize';
   document.body.style.userSelect = 'none';
+  document.querySelectorAll('webview').forEach((wv) => wv.style.pointerEvents = 'none');
   e.preventDefault();
 });
 
@@ -236,6 +269,41 @@ document.addEventListener('mouseup', () => {
     resizeHandle.classList.remove('dragging');
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
+    document.querySelectorAll('webview').forEach((wv) => wv.style.pointerEvents = '');
+  }
+});
+
+// ===== Pinned Panel Resize =====
+
+const pinnedResizeHandle = document.getElementById('pinned-resize-handle');
+const pinnedPanel = document.getElementById('pinned-uncat-panel');
+let isPinnedResizing = false;
+
+pinnedResizeHandle.addEventListener('mousedown', (e) => {
+  isPinnedResizing = true;
+  pinnedResizeHandle.classList.add('dragging');
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  document.querySelectorAll('webview').forEach((wv) => wv.style.pointerEvents = 'none');
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isPinnedResizing) return;
+  const panelRect = pinnedPanel.getBoundingClientRect();
+  let newWidth = e.clientX - panelRect.left;
+  if (newWidth < 150) newWidth = 150;
+  if (newWidth > 500) newWidth = 500;
+  pinnedPanel.style.width = newWidth + 'px';
+});
+
+document.addEventListener('mouseup', () => {
+  if (isPinnedResizing) {
+    isPinnedResizing = false;
+    pinnedResizeHandle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    document.querySelectorAll('webview').forEach((wv) => wv.style.pointerEvents = '');
   }
 });
 
@@ -411,6 +479,35 @@ updateBtn.addEventListener('click', async () => {
   }
 });
 
+// ===== Update Modal =====
+
+const updateModal = document.getElementById('update-modal');
+const updateDismissBtn = document.getElementById('update-dismiss-btn');
+updateDismissBtn.addEventListener('click', () => updateModal.classList.add('hidden'));
+
+async function autoCheckForUpdate() {
+  const info = await window.api.checkForUpdate();
+  if (!info || !info.hasUpdate) return;
+
+  document.getElementById('update-version-text').textContent =
+    `v${info.currentVersion} → v${info.latestVersion}`;
+
+  const downloadLink = document.getElementById('update-download-link');
+  const githubLink = document.getElementById('update-github-link');
+
+  const releaseUrl = info.releaseUrl || 'https://github.com/Derthi/Kenshi-Mod-Manager/releases';
+
+  if (info.downloadUrl) {
+    downloadLink.onclick = () => { window.open(info.downloadUrl); };
+  } else {
+    downloadLink.classList.add('hidden');
+  }
+
+  githubLink.onclick = () => { window.open(releaseUrl); };
+
+  updateModal.classList.remove('hidden');
+}
+
 // ===== Status Bar =====
 
 function setStatus(msg, type) {
@@ -488,6 +585,9 @@ async function persistConfig() {
   config.categories = categories;
   config.modCategories = modCategories;
   config.modOrders = modOrders;
+  config.uncategorizedPinned = uncategorizedPinned;
+  config.kenshiTheme = document.body.classList.contains('kenshi-theme');
+  config.tutorialDismissed = tutorialDismissed;
   await window.api.saveConfig(config);
 }
 
@@ -529,10 +629,24 @@ function renderColumns() {
   }
 
   // Render columns
+  const pinnedPanel = document.getElementById('pinned-uncat-panel');
+  const pinnedHandle = document.getElementById('pinned-resize-handle');
+  pinnedPanel.innerHTML = '';
+
   for (const cat of allCats) {
-    columnsContainer.appendChild(createColumn(
-      cat.id, cat.name, cat.color || '#555', globalOrder
-    ));
+    const column = createColumn(cat.id, cat.name, cat.color || '#555', globalOrder);
+    if (uncategorizedPinned && cat.id === UNCATEGORIZED) {
+      pinnedPanel.appendChild(column);
+      pinnedPanel.classList.remove('hidden');
+      pinnedHandle.classList.remove('hidden');
+    } else {
+      columnsContainer.appendChild(column);
+    }
+  }
+
+  if (!uncategorizedPinned) {
+    pinnedPanel.classList.add('hidden');
+    pinnedHandle.classList.add('hidden');
   }
 
   updateDetailPanel();
@@ -1919,10 +2033,28 @@ async function init() {
     categories = config.categories || [];
     modCategories = config.modCategories || {};
     modOrders = config.modOrders || {};
+    uncategorizedPinned = config.uncategorizedPinned || false;
+    if (uncategorizedPinned) {
+      pinUncatBtn.classList.add('btn-pinned-active');
+      pinUncatBtn.textContent = 'Unpin Uncategorized';
+    }
+    // Default to Kenshi theme unless explicitly set to false
+    if (config.kenshiTheme !== false) {
+      document.body.classList.add('kenshi-theme');
+      themeToggleCb.checked = true;
+    }
+    tutorialDismissed = config.tutorialDismissed || false;
+    if (!tutorialDismissed) {
+      tutorialModal.classList.remove('hidden');
+    }
     ensureDefaultCategories();
     showMainScreen();
+    autoCheckForUpdate();
   } else {
     config = config || { categories: [], modCategories: {}, modOrders: {} };
+    // Default to Kenshi theme on first launch
+    document.body.classList.add('kenshi-theme');
+    themeToggleCb.checked = true;
     ensureDefaultCategories();
     setupScreen.classList.remove('hidden');
     autoDetect();

@@ -1,6 +1,6 @@
 {
   "name": "kenshi-mod-manager",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A Kenshi mod load order manager with category sorting, conflict detection, AI-assisted sorting, and mod packs",
   "main": "main.js",
   "license": "MIT",
@@ -14,14 +14,16 @@
   },
   "build": {
     "appId": "com.kenshi.mod-sorter",
-    "productName": "Kenshi Mod Sorter",
+    "productName": "BEEP Kenshi Mod Manager",
     "win": {
       "target": "dir",
+      "icon": "icon.ico",
       "signAndEditExecutable": false
     },
     "files": [
       "main.js",
       "preload.js",
+      "icon.ico",
       "lib/**/*",
       "renderer/**/*"
     ]
