@@ -77,6 +77,17 @@ ipcMain.handle('fetch-workshop-details', (_event, workshopIds) => {
   return steamApi.fetchWorkshopDetails(workshopIds);
 });
 
+// Open file dialog
+ipcMain.handle('open-file-dialog', async (_event, filters) => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    filters: filters || [{ name: 'Text Files', extensions: ['txt'] }],
+    properties: ['openFile'],
+  });
+  if (result.canceled || result.filePaths.length === 0) return null;
+  const fs = require('fs');
+  return { path: result.filePaths[0], content: fs.readFileSync(result.filePaths[0], 'utf8') };
+});
+
 // Save file dialog
 ipcMain.handle('save-file-dialog', async (_event, defaultName) => {
   const result = await dialog.showSaveDialog(mainWindow, {

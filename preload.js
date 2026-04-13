@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('api', {
   savePack: (pack) => ipcRenderer.invoke('save-pack', pack),
   deletePack: (name) => ipcRenderer.invoke('delete-pack', name),
   fetchWorkshopDetails: (ids) => ipcRenderer.invoke('fetch-workshop-details', ids),
+  openFileDialog: (filters) => ipcRenderer.invoke('open-file-dialog', filters),
   saveFileDialog: (name) => ipcRenderer.invoke('save-file-dialog', name),
   writeFile: (path, content) => ipcRenderer.invoke('write-file', path, content),
   generateConflicts: (activeMods) => ipcRenderer.invoke('generate-conflicts', activeMods),

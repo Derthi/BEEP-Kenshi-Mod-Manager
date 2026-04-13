@@ -246,6 +246,16 @@ tutorialOkBtn.addEventListener('click', () => {
   }
 });
 
+const tutorialShowBtn = document.getElementById('tutorial-show-btn');
+tutorialShowBtn.addEventListener('click', () => {
+  tutorialModal.classList.add('hidden');
+  if (tutorialDismissCb.checked) {
+    tutorialDismissed = true;
+    persistConfig();
+  }
+  switchTab(tabTutorial);
+});
+
 // Pin Uncategorized toggle
 const pinUncatBtn = document.getElementById('pin-uncat-btn');
 pinUncatBtn.addEventListener('click', () => {
@@ -456,6 +466,131 @@ async function runConflictCheck() {
 }
 
 generateConflictsBtn.addEventListener('click', runConflictCheck);
+
+// ===== Export / Import Mod List =====
+
+const exportListBtn = document.getElementById('export-list-btn');
+const importListBtn = document.getElementById('import-list-btn');
+
+exportListBtn.addEventListener('click', async () => {
+  const filePath = await window.api.saveFileDialog('BEEP-mod-list.txt');
+  if (!filePath) return;
+
+  // Build full export: categories + order + active state
+  const lines = ['# BEEP Kenshi Mod Manager - Mod List Export', '# Format: [Category] then filename|active/inactive', ''];
+
+  const sorted = [...categories].sort((a, b) => a.order - b.order);
+  sorted.push({ id: UNCATEGORIZED, name: 'Uncategorized', color: '#555' });
+
+  for (const cat of sorted) {
+    const catMods = getModsForCategory(cat.id);
+    if (catMods.length === 0) continue;
+    lines.push(`[${cat.name}]`);
+    for (const mod of catMods) {
+      lines.push(`${mod.filename}|${mod.active ? 'active' : 'inactive'}`);
+    }
+    lines.push('');
+  }
+
+  await window.api.writeFile(filePath, lines.join('\n'));
+  setStatus('Mod list exported!', 'success');
+});
+
+importListBtn.addEventListener('click', async () => {
+  const file = await window.api.openFileDialog([{ name: 'Text Files', extensions: ['txt'] }]);
+  if (!file) return;
+
+  const content = file.content;
+  const lines = content.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+
+  // Detect format: BEEP export (has [Category] headers + |active/inactive) or generic (just filenames)
+  const hasCategories = lines.some((l) => l.startsWith('['));
+  const hasPipes = lines.some((l) => l.includes('|'));
+  const isBeepFormat = hasCategories && hasPipes;
+
+  if (isBeepFormat) {
+    // Full BEEP import: categories, order, active state
+    let currentCat = null;
+    const catMap = {}; // catName -> [{ filename, active }]
+
+    for (const line of lines) {
+      const catMatch = line.match(/^\[(.+)\]$/);
+      if (catMatch) {
+        currentCat = catMatch[1];
+        if (!catMap[currentCat]) catMap[currentCat] = [];
+        continue;
+      }
+      if (!currentCat) continue;
+      const parts = line.split('|');
+      const filename = parts[0].trim();
+      const active = parts.length > 1 ? parts[1].trim() === 'active' : true;
+      if (filename.endsWith('.mod')) {
+        catMap[currentCat].push({ filename, active });
+      }
+    }
+
+    // Apply: create missing categories, assign mods
+    for (const [catName, catMods] of Object.entries(catMap)) {
+      let catId;
+      if (catName === 'Uncategorized') {
+        catId = UNCATEGORIZED;
+      } else {
+        let cat = categories.find((c) => c.name === catName);
+        if (!cat) {
+          cat = { id: generateId(), name: catName, color: '#' + Math.floor(Math.random() * 0xCCCCCC + 0x333333).toString(16), order: categories.length };
+          categories.push(cat);
+        }
+        catId = cat.id;
+      }
+
+      modOrders[catId] = [];
+      for (const { filename, active } of catMods) {
+        const mod = mods.find((m) => m.filename === filename);
+        if (!mod) continue;
+        mod.category = catId;
+        mod.active = active;
+        if (catId !== UNCATEGORIZED) modCategories[mod.filename] = catId;
+        else delete modCategories[mod.filename];
+        modOrders[catId].push(mod.filename);
+      }
+    }
+
+    syncModCategories();
+    persistConfig();
+    renderColumns();
+    setStatus(`Imported BEEP mod list (${Object.keys(catMap).length} categories).`, 'success');
+  } else {
+    // Generic import: just a list of .mod filenames — apply as uncategorized order
+    const filenames = lines.filter((l) => l.endsWith('.mod'));
+    if (filenames.length === 0) {
+      setStatus('No .mod filenames found in file.', 'error');
+      return;
+    }
+
+    // Reorder uncategorized mods to match the import list
+    const newOrder = [];
+    for (const fn of filenames) {
+      const mod = mods.find((m) => m.filename === fn);
+      if (mod) {
+        mod.category = UNCATEGORIZED;
+        delete modCategories[mod.filename];
+        newOrder.push(fn);
+      }
+    }
+    // Append any uncategorized mods not in the list
+    for (const mod of mods) {
+      if (mod.category === UNCATEGORIZED && !newOrder.includes(mod.filename)) {
+        newOrder.push(mod.filename);
+      }
+    }
+    modOrders[UNCATEGORIZED] = newOrder;
+
+    syncModCategories();
+    persistConfig();
+    renderColumns();
+    setStatus(`Imported generic mod list (${filenames.length} mods reordered in Uncategorized).`, 'success');
+  }
+});
 
 // ===== Update Check =====
 

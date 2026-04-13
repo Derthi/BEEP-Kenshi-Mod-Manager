@@ -70,6 +70,8 @@
         <button id="settings-btn" class="btn btn-icon" title="Settings">&#9881;</button>
         <button id="generate-conflicts-btn" class="btn">Check Conflicts</button>
         <button id="map-btn" class="btn" title="View zone conflict map">Map</button>
+        <button id="export-list-btn" class="btn" title="Export mod list to file">Export List</button>
+        <button id="import-list-btn" class="btn" title="Import mod list from file">Import List</button>
         <button id="refresh-btn" class="btn">Refresh</button>
         <button id="save-btn" class="btn btn-primary">Save Load Order</button>
         <button id="play-btn" class="btn btn-play">&#9654; Play</button>
@@ -84,11 +86,11 @@
         <div class="detail-tabs">
           <button id="tab-details" class="detail-tab active">Details</button>
           <button id="tab-modpage" class="detail-tab">Mod Page</button>
-          <button id="tab-tutorial" class="detail-tab">Tutorial</button>
-          <button id="tab-guide" class="detail-tab">Guide</button>
+          <button id="tab-guide" class="detail-tab">Modding Guide</button>
           <button id="tab-conflicts" class="detail-tab">Conflicts</button>
           <button id="tab-packs" class="detail-tab">Packs</button>
           <button id="tab-workshop" class="detail-tab">Workshop</button>
+          <button id="tab-tutorial" class="detail-tab">Tutorial</button>
         </div>
         <div id="detail-view" class="detail-view">
           <div class="detail-placeholder">Select a mod to view details</div>
@@ -135,13 +137,18 @@
             <h4>Getting Started</h4>
             <p>BEEP organizes your Kenshi mods into categories displayed as columns. Load order reads left-to-right, top-to-bottom. Your existing mods.cfg load order is preserved on first launch.</p>
 
+            <hr class="tutorial-divider">
+
             <h4>Sorting Mods</h4>
             <ul>
               <li><strong>Drag and drop</strong> mods between category columns to sort your load order.</li>
               <li><strong>Multi-select</strong> with Ctrl+click (toggle) or Shift+click (range), then right-click to move them all to a category at once.</li>
+              <li><strong>Group drag</strong> — select multiple mods and drag them together.</li>
               <li><strong>Pin Uncategorized</strong> to get a resizable side panel for easy sorting.</li>
               <li><strong>Drag column headers</strong> to reorder entire categories.</li>
             </ul>
+
+            <hr class="tutorial-divider">
 
             <h4>Categories</h4>
             <ul>
@@ -151,6 +158,8 @@
               <li><strong>Reset Categories</strong> restores the default category set.</li>
             </ul>
 
+            <hr class="tutorial-divider">
+
             <h4>Mod Packs</h4>
             <ul>
               <li>Go to the <strong>Packs</strong> tab to save and load complete mod configurations.</li>
@@ -159,6 +168,17 @@
               <li>Great for switching between different playthroughs or saving before AI sort.</li>
             </ul>
 
+            <hr class="tutorial-divider">
+
+            <h4>Import & Export</h4>
+            <ul>
+              <li><strong>Export List</strong> — saves your full setup (categories, load order, active/inactive state) to a text file. Share it with friends or back it up.</li>
+              <li><strong>Import List</strong> — loads a previously exported BEEP mod list, restoring all categories and ordering.</li>
+              <li><strong>Generic import</strong> — also supports plain lists of .mod filenames (one per line). These reorder your uncategorized mods to match the list.</li>
+            </ul>
+
+            <hr class="tutorial-divider">
+
             <h4>Conflict Detection</h4>
             <ul>
               <li><strong>Check Conflicts</strong> deep-parses .mod files, level data, and asset files to find real conflicts.</li>
@@ -166,6 +186,18 @@
               <li>Expand any property to see the <strong>actual values</strong> each mod sets. Identical values are filtered out.</li>
               <li>Click <strong>Map</strong> to see conflicts on the Kenshi world map with zoom, pan, and exterior/interior toggle.</li>
             </ul>
+
+            <hr class="tutorial-divider">
+
+            <h4>Other Features</h4>
+            <ul>
+              <li><strong>Themes</strong> — toggle Dark/Kenshi theme in the toolbar.</li>
+              <li><strong>Workshop</strong> tab — browse Steam Workshop directly in the app.</li>
+              <li><strong>Modding Guide</strong> tab — Kenshi load order guide from Steam.</li>
+              <li><strong>Auto-update</strong> — checks for new versions on launch.</li>
+            </ul>
+
+            <hr class="tutorial-divider">
 
             <h4>AI Sort</h4>
             <p>AI Sort uses an AI chatbot (Claude or ChatGPT) to automatically sort your mods into the correct Kenshi load order.</p>
@@ -178,6 +210,15 @@
             </ol>
             <p>No data is sent automatically — you are the middleman. The app only contacts Steam's public API for descriptions.</p>
 
+            <h4>AI Export Modes</h4>
+            <ul>
+              <li><strong>Uncategorized Only</strong> — unsorted mods with full descriptions (recommended)</li>
+              <li><strong>Uncategorized Compact</strong> — tags + truncated descriptions (50+ mods)</li>
+              <li><strong>All Mods Compact</strong> — everything with short descriptions (500+ mods)</li>
+              <li><strong>All Mods Full</strong> — complete descriptions (most accurate, largest)</li>
+              <li><strong>Split Batches</strong> — multiple files with ~50 mods each</li>
+            </ul>
+
             <h4>AI Response Format</h4>
             <pre class="ai-guide-sample">[UI, Graphics, Performance]
 Dark UI.mod
@@ -189,22 +230,6 @@ AnimationOverhaul.mod
 [Uncategorized]
 Test.mod</pre>
             <p>Extra commentary is OK — the parser strips everything that isn't a [Category] header or a .mod filename.</p>
-
-            <h4>Export Modes</h4>
-            <ul>
-              <li><strong>Uncategorized Only</strong> — unsorted mods with full descriptions (recommended)</li>
-              <li><strong>Uncategorized Compact</strong> — tags + truncated descriptions (50+ mods)</li>
-              <li><strong>All Mods Compact</strong> — everything with short descriptions (500+ mods)</li>
-              <li><strong>All Mods Full</strong> — complete descriptions (most accurate, largest)</li>
-              <li><strong>Split Batches</strong> — multiple files with ~50 mods each</li>
-            </ul>
-
-            <h4>Other Features</h4>
-            <ul>
-              <li><strong>Themes</strong> — toggle Dark/Kenshi theme in the toolbar.</li>
-              <li><strong>Workshop</strong> tab — browse Steam Workshop directly in the app.</li>
-              <li><strong>Auto-update</strong> — checks for new versions on launch.</li>
-            </ul>
           </div>
         </div>
         <webview id="guide-view" class="guide-view hidden" src="https://steamcommunity.com/sharedfiles/filedetails/?id=1850250979"></webview>
@@ -415,7 +440,10 @@ Test.mod</pre>
             <input type="checkbox" id="tutorial-dismiss-cb">
             <span>Don't show this again</span>
           </label>
-          <button id="tutorial-ok-btn" class="btn btn-primary">Got it!</button>
+          <div class="tutorial-footer-buttons">
+            <button id="tutorial-show-btn" class="btn">Show Tutorial</button>
+            <button id="tutorial-ok-btn" class="btn btn-primary">Got it!</button>
+          </div>
         </div>
       </div>
     </div>

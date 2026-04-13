@@ -1372,6 +1372,11 @@ body.kenshi-theme .conflict-value-divider {
   border-top: 1px solid #252528;
 }
 
+.tutorial-footer-buttons {
+  display: flex;
+  gap: 6px;
+}
+
 .tutorial-checkbox {
   display: flex;
   align-items: center;
@@ -1501,6 +1506,16 @@ body.kenshi-theme .tutorial-guide li {
 
 body.kenshi-theme .tutorial-guide strong {
   color: #e8dcc8;
+}
+
+.tutorial-divider {
+  border: none;
+  border-top: 1px solid #252528;
+  margin: 12px 0;
+}
+
+body.kenshi-theme .tutorial-divider {
+  border-top-color: #6a5a45;
 }
 
 /* ===== Zone Map Modal ===== */
