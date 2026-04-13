@@ -408,6 +408,49 @@ body::after {
   opacity: 0.3;
 }
 
+.drag-ghost {
+  position: absolute;
+  top: -1000px;
+  left: -1000px;
+  background: #252528;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 4px 8px;
+  min-width: 140px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  z-index: 9999;
+}
+
+.drag-ghost-item {
+  font-size: 11px;
+  color: #e0e0e0;
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.drag-ghost-more {
+  font-size: 10px;
+  color: #888;
+  padding: 2px 0;
+  font-style: italic;
+}
+
+body.kenshi-theme .drag-ghost {
+  background: #504535;
+  border-color: #7a6a55;
+}
+
+body.kenshi-theme .drag-ghost-item {
+  color: #e8dcc8;
+}
+
+body.kenshi-theme .drag-ghost-more {
+  color: #baa888;
+}
+
 .mod-card .card-handle {
   cursor: grab;
   color: #666;
@@ -1409,6 +1452,55 @@ body.kenshi-theme .tutorial-checkbox input {
 
 body.kenshi-theme .update-version {
   color: #baa888;
+}
+
+/* ===== Tutorial Guide ===== */
+.tutorial-guide {
+  padding: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tutorial-guide h4 {
+  color: #8ab4f8;
+  font-size: 13px;
+  margin: 14px 0 6px;
+}
+
+.tutorial-guide h4:first-child {
+  margin-top: 0;
+}
+
+.tutorial-guide p {
+  color: #ccc;
+  margin-bottom: 8px;
+}
+
+.tutorial-guide ul, .tutorial-guide ol {
+  padding-left: 18px;
+  margin-bottom: 8px;
+}
+
+.tutorial-guide li {
+  color: #ccc;
+  margin-bottom: 3px;
+}
+
+.tutorial-guide strong {
+  color: #e0e0e0;
+}
+
+body.kenshi-theme .tutorial-guide h4 {
+  color: #f4e4c4;
+}
+
+body.kenshi-theme .tutorial-guide p,
+body.kenshi-theme .tutorial-guide li {
+  color: #d0c4a8;
+}
+
+body.kenshi-theme .tutorial-guide strong {
+  color: #e8dcc8;
 }
 
 /* ===== Zone Map Modal ===== */

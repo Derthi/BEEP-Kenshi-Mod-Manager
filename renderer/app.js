@@ -8,6 +8,8 @@ let modOrders = {}; // categoryId -> [filename, ...]
 let contextTarget = null; // category id for context menu
 let verticalLayout = false;
 let conflictData = null; // { modConflicts, totalConflicts, parseErrors }
+let selectedMods = new Set(); // multi-select filenames
+let lastClickedMod = null; // for shift-click range select
 let uncategorizedPinned = false;
 let tutorialDismissed = false;
 
@@ -168,6 +170,20 @@ async function loadMods() {
   try {
     mods = await window.api.discoverMods(config);
     applyCategoriesToMods();
+
+    // Preserve mods.cfg load order for uncategorized mods on first load
+    if (!modOrders[UNCATEGORIZED] || modOrders[UNCATEGORIZED].length === 0) {
+      const uncatMods = mods.filter((m) => m.category === UNCATEGORIZED);
+      // Sort by mods.cfg order (active mods first in load order, then inactive)
+      uncatMods.sort((a, b) => {
+        if (a.order >= 0 && b.order >= 0) return a.order - b.order;
+        if (a.order >= 0) return -1;
+        if (b.order >= 0) return 1;
+        return a.displayName.localeCompare(b.displayName);
+      });
+      modOrders[UNCATEGORIZED] = uncatMods.map((m) => m.filename);
+    }
+
     selectedMod = null;
     renderColumns();
     const activeCount = mods.filter((m) => m.active).length;
@@ -317,8 +333,8 @@ columnsContainer.addEventListener('wheel', (e) => {
 
 // ===== Drag Auto-Scroll =====
 
-let dragMouseX = 0;
-let dragMouseY = 0;
+let dragMouseX = -1;
+let dragMouseY = -1;
 let dragScrollInterval = null;
 
 function onDragMove(e) {
@@ -331,6 +347,8 @@ function scrollTick() {
   const speed = 6;
   const x = dragMouseX;
   const y = dragMouseY;
+
+  if (x < 0 || y < 0) return; // no mouse position yet
 
   // Scroll the columns container
   const rect = columnsContainer.getBoundingClientRect();
@@ -361,6 +379,8 @@ document.addEventListener('dragstart', () => {
 document.addEventListener('dragend', () => {
   document.removeEventListener('dragover', onDragMove);
   if (dragScrollInterval) { clearInterval(dragScrollInterval); dragScrollInterval = null; }
+  dragMouseX = -1;
+  dragMouseY = -1;
 });
 
 saveBtn.addEventListener('click', async () => {
@@ -403,7 +423,8 @@ playBtn.addEventListener('click', async () => {
 // ===== Conflict Detection =====
 
 const generateConflictsBtn = document.getElementById('generate-conflicts-btn');
-generateConflictsBtn.addEventListener('click', async () => {
+
+async function runConflictCheck() {
   const ordered = computeLoadOrder();
   const activeMods = ordered.map((filename) => {
     const mod = mods.find((m) => m.filename === filename);
@@ -432,7 +453,9 @@ generateConflictsBtn.addEventListener('click', async () => {
   }
 
   generateConflictsBtn.disabled = false;
-});
+}
+
+generateConflictsBtn.addEventListener('click', runConflictCheck);
 
 // ===== Update Check =====
 
@@ -538,12 +561,11 @@ zoneMapModal.addEventListener('click', (e) => {
 });
 
 // Map button handler
-mapBtn.addEventListener('click', () => {
+mapBtn.addEventListener('click', async () => {
   if (!conflictData) {
-    setStatus('Run "Check Conflicts" first.', 'error');
-    return;
+    await runConflictCheck();
   }
-  openZoneMap();
+  if (conflictData) openZoneMap();
 });
 
 function openZoneMap(focusZone) {
@@ -987,6 +1009,9 @@ function syncModCategories() {
 // ===== Rendering =====
 
 function renderColumns() {
+  // Preserve scroll position across re-renders
+  const savedScrollTop = columnsContainer.scrollTop;
+  const savedScrollLeft = columnsContainer.scrollLeft;
   columnsContainer.innerHTML = '';
 
   const sorted = [...categories].sort((a, b) => a.order - b.order);
@@ -1024,6 +1049,12 @@ function renderColumns() {
     pinnedPanel.classList.add('hidden');
     pinnedHandle.classList.add('hidden');
   }
+
+  // Restore scroll position after layout
+  requestAnimationFrame(() => {
+    columnsContainer.scrollTop = savedScrollTop;
+    columnsContainer.scrollLeft = savedScrollLeft;
+  });
 
   updateDetailPanel();
 }
@@ -1142,14 +1173,16 @@ function createColumn(catId, name, color, globalOrder) {
   modsList.addEventListener('drop', (e) => {
     e.preventDefault();
     col.classList.remove('drag-over-column');
-    const filename = e.dataTransfer.getData('text/plain');
-    if (!filename) return;
-    const mod = mods.find((m) => m.filename === filename);
-    if (!mod) return;
+    const data = e.dataTransfer.getData('text/plain');
+    if (!data) return;
+    const filenames = data.split('\n').filter(Boolean);
 
     // If dropping on empty area of column, append to end
     if (e.target === modsList || e.target === col) {
-      moveMod(mod, catId, null);
+      for (const fn of filenames) {
+        const mod = mods.find((m) => m.filename === fn);
+        if (mod) moveMod(mod, catId, null);
+      }
     }
   });
 
@@ -1162,7 +1195,7 @@ function createModCard(mod, catColor, globalOrder) {
   card.className = 'mod-card';
   card.style.borderLeftColor = catColor;
   if (!mod.active) card.classList.add('inactive');
-  if (selectedMod && selectedMod.filePath === mod.filePath) card.classList.add('selected');
+  if (selectedMods.has(mod.filename) || (selectedMod && selectedMod.filePath === mod.filePath)) card.classList.add('selected');
   card.dataset.filename = mod.filename;
 
   // Load order number (replaces drag handle)
@@ -1251,16 +1284,47 @@ function createModCard(mod, catColor, globalOrder) {
     }
   }
 
-  // Click to select
-  card.addEventListener('click', () => {
+  // Click to select (with multi-select support)
+  card.addEventListener('click', (e) => {
+    if (e.shiftKey && lastClickedMod) {
+      // Shift+click: range select within the same category
+      const catMods = getModsForCategory(mod.category);
+      const startIdx = catMods.findIndex((m) => m.filename === lastClickedMod.filename);
+      const endIdx = catMods.findIndex((m) => m.filename === mod.filename);
+      if (startIdx >= 0 && endIdx >= 0) {
+        const lo = Math.min(startIdx, endIdx);
+        const hi = Math.max(startIdx, endIdx);
+        for (let i = lo; i <= hi; i++) {
+          selectedMods.add(catMods[i].filename);
+        }
+      }
+    } else if (e.ctrlKey || e.metaKey) {
+      // Ctrl+click: toggle individual selection
+      if (selectedMods.has(mod.filename)) {
+        selectedMods.delete(mod.filename);
+      } else {
+        selectedMods.add(mod.filename);
+      }
+    } else {
+      // Normal click: single select
+      selectedMods.clear();
+      selectedMods.add(mod.filename);
+    }
     selectedMod = mod;
+    lastClickedMod = mod;
     renderColumns();
   });
 
-  // Right-click to assign category
+  // Right-click to assign category (bulk if multi-selected)
   card.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     e.stopPropagation();
+    // If right-clicking a non-selected mod, switch selection to it
+    if (!selectedMods.has(mod.filename)) {
+      selectedMods.clear();
+      selectedMods.add(mod.filename);
+      selectedMod = mod;
+    }
     showModContextMenu(e.clientX, e.clientY, mod);
   });
 
@@ -1269,7 +1333,27 @@ function createModCard(mod, catColor, globalOrder) {
 
   card.addEventListener('dragstart', (e) => {
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', mod.filename);
+    // If dragging a selected mod, include all selected mods
+    if (selectedMods.has(mod.filename) && selectedMods.size > 1) {
+      e.dataTransfer.setData('text/plain', [...selectedMods].join('\n'));
+
+      // Custom drag image showing all selected mods
+      const ghost = document.createElement('div');
+      ghost.className = 'drag-ghost';
+      const names = [...selectedMods].slice(0, 5).map((fn) => {
+        const m = mods.find((mod) => mod.filename === fn);
+        return m ? m.displayName : fn;
+      });
+      ghost.innerHTML = names.map((n) => `<div class="drag-ghost-item">${n}</div>`).join('');
+      if (selectedMods.size > 5) {
+        ghost.innerHTML += `<div class="drag-ghost-more">+${selectedMods.size - 5} more</div>`;
+      }
+      document.body.appendChild(ghost);
+      e.dataTransfer.setDragImage(ghost, 10, 10);
+      requestAnimationFrame(() => document.body.removeChild(ghost));
+    } else {
+      e.dataTransfer.setData('text/plain', mod.filename);
+    }
     requestAnimationFrame(() => card.classList.add('dragging'));
   });
 
@@ -1295,13 +1379,19 @@ function createModCard(mod, catColor, globalOrder) {
     e.preventDefault();
     e.stopPropagation();
     card.classList.remove('drag-over-card');
-    const filename = e.dataTransfer.getData('text/plain');
-    if (!filename || filename === mod.filename) return;
-    const draggedMod = mods.find((m) => m.filename === filename);
-    if (!draggedMod) return;
+    const data = e.dataTransfer.getData('text/plain');
+    if (!data) return;
+    const filenames = data.split('\n').filter(Boolean);
+    if (filenames.length === 0 || (filenames.length === 1 && filenames[0] === mod.filename)) return;
 
     // Drop onto this card — insert before it in this card's category
-    moveMod(draggedMod, mod.category, mod.filename);
+    // Move in order so they stack correctly
+    for (const fn of filenames) {
+      const draggedMod = mods.find((m) => m.filename === fn);
+      if (draggedMod && draggedMod.filename !== mod.filename) {
+        moveMod(draggedMod, mod.category, mod.filename);
+      }
+    }
   });
 
   return card;
@@ -1389,13 +1479,29 @@ function showModContextMenu(x, y, mod) {
   hideContextMenu();
   modContextTarget = mod;
 
+  // Get all selected mods for bulk move
+  const bulkMods = selectedMods.size > 1
+    ? mods.filter((m) => selectedMods.has(m.filename))
+    : [mod];
+
   // Build category list
   modContextCategories.innerHTML = '';
+
+  // Show count header if bulk
+  if (bulkMods.length > 1) {
+    const header = document.createElement('div');
+    header.className = 'context-item';
+    header.style.cssText = 'color:#8ab4f8;font-weight:600;cursor:default;font-size:10px;';
+    header.textContent = `Move ${bulkMods.length} mods to:`;
+    modContextCategories.appendChild(header);
+  }
+
   const allCats = [...categories].sort((a, b) => a.order - b.order);
   allCats.push({ id: UNCATEGORIZED, name: 'Uncategorized', color: '#555' });
 
   for (const cat of allCats) {
-    if (cat.id === mod.category) continue; // skip current category
+    // For single mod, skip current category
+    if (bulkMods.length === 1 && cat.id === mod.category) continue;
     const item = document.createElement('div');
     item.className = 'context-item';
     const dot = document.createElement('span');
@@ -1404,7 +1510,10 @@ function showModContextMenu(x, y, mod) {
     item.appendChild(dot);
     item.appendChild(document.createTextNode(cat.name));
     item.addEventListener('click', () => {
-      moveMod(mod, cat.id, null);
+      for (const m of bulkMods) {
+        moveMod(m, cat.id, null);
+      }
+      selectedMods.clear();
       hideContextMenu();
     });
     modContextCategories.appendChild(item);
@@ -1523,20 +1632,22 @@ resetCategoriesBtn.addEventListener('click', async () => {
 
 const tabDetails = document.getElementById('tab-details');
 const tabModpage = document.getElementById('tab-modpage');
+const tabTutorial = document.getElementById('tab-tutorial');
 const tabConflicts = document.getElementById('tab-conflicts');
 const tabGuide = document.getElementById('tab-guide');
 const tabPacks = document.getElementById('tab-packs');
 const tabWorkshop = document.getElementById('tab-workshop');
 const detailView = document.getElementById('detail-view');
 const modpageView = document.getElementById('modpage-view');
+const tutorialView = document.getElementById('tutorial-view');
 const conflictsView = document.getElementById('conflicts-view');
 const guideView = document.getElementById('guide-view');
 const packsView = document.getElementById('packs-view');
 const workshopView = document.getElementById('workshop-view');
 
 function switchTab(activeTab) {
-  const tabs = [tabDetails, tabModpage, tabConflicts, tabGuide, tabPacks, tabWorkshop];
-  const views = [detailView, modpageView, conflictsView, guideView, packsView, workshopView];
+  const tabs = [tabDetails, tabModpage, tabTutorial, tabConflicts, tabGuide, tabPacks, tabWorkshop];
+  const views = [detailView, modpageView, tutorialView, conflictsView, guideView, packsView, workshopView];
   tabs.forEach((t, i) => {
     t.classList.toggle('active', t === activeTab);
     views[i].classList.toggle('hidden', t !== activeTab);
@@ -1544,6 +1655,7 @@ function switchTab(activeTab) {
 }
 
 tabDetails.addEventListener('click', () => switchTab(tabDetails));
+tabTutorial.addEventListener('click', () => switchTab(tabTutorial));
 tabGuide.addEventListener('click', () => switchTab(tabGuide));
 tabModpage.addEventListener('click', () => {
   if (selectedMod && selectedMod.url) {
@@ -1664,17 +1776,14 @@ async function applyPack(pack) {
 
 // ===== AI Sort =====
 
-// AI Sort Guide
-const aiGuideBtn = document.getElementById('ai-guide-btn');
+// AI Sort Guide modal (kept for reference, opened from tutorial)
 const aiGuideModal = document.getElementById('ai-guide-modal');
 const aiGuideClose = document.getElementById('ai-guide-close');
-
-aiGuideBtn.addEventListener('click', () => {
-  aiGuideModal.classList.remove('hidden');
-});
-aiGuideClose.addEventListener('click', () => {
-  aiGuideModal.classList.add('hidden');
-});
+if (aiGuideClose) {
+  aiGuideClose.addEventListener('click', () => {
+    aiGuideModal.classList.add('hidden');
+  });
+}
 
 const aiExportBtn = document.getElementById('ai-export-btn');
 const aiImportBtn = document.getElementById('ai-import-btn');

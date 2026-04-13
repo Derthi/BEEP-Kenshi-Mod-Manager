@@ -59,7 +59,6 @@
         </div>
       </div>
       <div class="toolbar-center">
-        <button id="ai-guide-btn" class="btn">AI Sorting Guide</button>
         <button id="ai-export-btn" class="btn">AI Sort Export</button>
         <button id="ai-import-btn" class="btn">AI Sort Import</button>
       </div>
@@ -85,6 +84,7 @@
         <div class="detail-tabs">
           <button id="tab-details" class="detail-tab active">Details</button>
           <button id="tab-modpage" class="detail-tab">Mod Page</button>
+          <button id="tab-tutorial" class="detail-tab">Tutorial</button>
           <button id="tab-guide" class="detail-tab">Guide</button>
           <button id="tab-conflicts" class="detail-tab">Conflicts</button>
           <button id="tab-packs" class="detail-tab">Packs</button>
@@ -130,6 +130,83 @@
         </div>
         </div>
         <webview id="modpage-view" class="guide-view hidden" src="about:blank"></webview>
+        <div id="tutorial-view" class="detail-view hidden">
+          <div class="tutorial-guide">
+            <h4>Getting Started</h4>
+            <p>BEEP organizes your Kenshi mods into categories displayed as columns. Load order reads left-to-right, top-to-bottom. Your existing mods.cfg load order is preserved on first launch.</p>
+
+            <h4>Sorting Mods</h4>
+            <ul>
+              <li><strong>Drag and drop</strong> mods between category columns to sort your load order.</li>
+              <li><strong>Multi-select</strong> with Ctrl+click (toggle) or Shift+click (range), then right-click to move them all to a category at once.</li>
+              <li><strong>Pin Uncategorized</strong> to get a resizable side panel for easy sorting.</li>
+              <li><strong>Drag column headers</strong> to reorder entire categories.</li>
+            </ul>
+
+            <h4>Categories</h4>
+            <ul>
+              <li><strong>Add categories</strong> with the "+ Add Category" button in the toolbar.</li>
+              <li><strong>Right-click a category header</strong> to rename, change color, or delete it.</li>
+              <li><strong>Drag category headers</strong> left/right to reorder them. Load order follows category order.</li>
+              <li><strong>Reset Categories</strong> restores the default category set.</li>
+            </ul>
+
+            <h4>Mod Packs</h4>
+            <ul>
+              <li>Go to the <strong>Packs</strong> tab to save and load complete mod configurations.</li>
+              <li><strong>Save Current</strong> captures your entire setup — categories, mod order, and active/inactive state.</li>
+              <li>Load a pack to instantly restore a previous configuration.</li>
+              <li>Great for switching between different playthroughs or saving before AI sort.</li>
+            </ul>
+
+            <h4>Conflict Detection</h4>
+            <ul>
+              <li><strong>Check Conflicts</strong> deep-parses .mod files, level data, and asset files to find real conflicts.</li>
+              <li><strong>Green</strong> = this mod wins, <strong>Red</strong> = overridden, <strong>Yellow</strong> = both overridden by a third mod.</li>
+              <li>Expand any property to see the <strong>actual values</strong> each mod sets. Identical values are filtered out.</li>
+              <li>Click <strong>Map</strong> to see conflicts on the Kenshi world map with zoom, pan, and exterior/interior toggle.</li>
+            </ul>
+
+            <h4>AI Sort</h4>
+            <p>AI Sort uses an AI chatbot (Claude or ChatGPT) to automatically sort your mods into the correct Kenshi load order.</p>
+            <ol>
+              <li><strong>Save a mod pack first</strong> in the Packs tab so you can revert.</li>
+              <li>Click <strong>AI Sort Export</strong> — fetches Steam descriptions and builds a text file.</li>
+              <li>Paste the file into an AI chatbot and send it.</li>
+              <li>Copy the AI's response.</li>
+              <li>Click <strong>AI Sort Import</strong>, paste, and click Apply Order.</li>
+            </ol>
+            <p>No data is sent automatically — you are the middleman. The app only contacts Steam's public API for descriptions.</p>
+
+            <h4>AI Response Format</h4>
+            <pre class="ai-guide-sample">[UI, Graphics, Performance]
+Dark UI.mod
+Nice Map.mod
+
+[Animations]
+AnimationOverhaul.mod
+
+[Uncategorized]
+Test.mod</pre>
+            <p>Extra commentary is OK — the parser strips everything that isn't a [Category] header or a .mod filename.</p>
+
+            <h4>Export Modes</h4>
+            <ul>
+              <li><strong>Uncategorized Only</strong> — unsorted mods with full descriptions (recommended)</li>
+              <li><strong>Uncategorized Compact</strong> — tags + truncated descriptions (50+ mods)</li>
+              <li><strong>All Mods Compact</strong> — everything with short descriptions (500+ mods)</li>
+              <li><strong>All Mods Full</strong> — complete descriptions (most accurate, largest)</li>
+              <li><strong>Split Batches</strong> — multiple files with ~50 mods each</li>
+            </ul>
+
+            <h4>Other Features</h4>
+            <ul>
+              <li><strong>Themes</strong> — toggle Dark/Kenshi theme in the toolbar.</li>
+              <li><strong>Workshop</strong> tab — browse Steam Workshop directly in the app.</li>
+              <li><strong>Auto-update</strong> — checks for new versions on launch.</li>
+            </ul>
+          </div>
+        </div>
         <webview id="guide-view" class="guide-view hidden" src="https://steamcommunity.com/sharedfiles/filedetails/?id=1850250979"></webview>
         <div id="packs-view" class="detail-view hidden">
           <div class="packs-section">
