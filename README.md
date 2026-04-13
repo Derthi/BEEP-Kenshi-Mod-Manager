@@ -2,33 +2,62 @@
 
 **Beep Enhances Every Playthrough**
 
-A lightweight Electron-based mod load order manager for [Kenshi](https://store.steampowered.com/app/233860/Kenshi/). Organize your mods into categories, detect conflicts at every level, and get AI-assisted sorting suggestions.
+A lightweight Electron-based mod load order manager for [Kenshi](https://store.steampowered.com/app/233860/Kenshi/). Organize your mods into categories, detect conflicts at every level, visualize them on the world map, and get AI-assisted sorting suggestions.
 
 [Steam Workshop Guide](https://steamcommunity.com/sharedfiles/filedetails/?id=3704937622)
 
 ## Features
 
+### Mod Sorting
 - **Category-based sorting** — Organize mods into customizable categories (UI, Animations, Races, Weapons, etc.) displayed as columns. Load order reads left-to-right, top-to-bottom.
-- **Drag and drop** — Reorder mods within and between categories. Drag column headers to reorder categories.
-- **Pin Uncategorized** — Pin uncategorized mods to a resizable side panel so you can scroll and sort them into categories easily.
+- **Drag and drop** — Reorder mods within and between categories. Drag column headers to reorder entire categories.
+- **Multi-select** — Ctrl+click to toggle, Shift+click for range select. Right-click to move all selected mods to a category at once.
+- **Group drag** — Drag multiple selected mods together with a visual preview of all mod names.
+- **Pin Uncategorized** — Pin uncategorized mods to a resizable side panel for easy sorting.
 - **Horizontal & vertical layouts** — Toggle between column view and stacked list view.
+- **Preserved load order** — First launch respects your existing mods.cfg load order instead of alphabetical.
+
+### Categories
+- **Add, rename, delete** — Create categories with the toolbar button. Right-click headers to rename, change color, or delete.
+- **Drag to reorder** — Drag category headers to reorder them. Load order follows category order.
+- **Reset Categories** — Restore the default category set.
 
 ### Conflict Detection
-- **Deep conflict detection** — Parses .mod binary files, leveldata, and interior data to detect when multiple mods modify the same game data. Shows actual conflicting values inline with expandable property details.
+- **Deep conflict detection** — Parses .mod binary files, leveldata, and interior data to detect when multiple mods modify the same game data.
+- **Actual values shown** — Expand any conflicting property to see what each mod sets, with the winning value highlighted in green.
+- **Same-value filtering** — Conflicts where all mods set identical values are hidden (no false positives from FCS saving unchanged properties).
 - **Asset override detection** — Scans mod directories for file-level overrides (meshes, textures, sounds) where one mod's files replace another's.
-- **Level data parsing** — Deep-parses .level files to detect exterior (world placement) and interior (building layout) conflicts at the item/property level, filtering out false positives where values are identical.
-- **Three-way conflict indicators** — Green (winning), red (overridden), and yellow (both overridden by a third mod) for clear conflict visualization.
-- **Interactive conflict map** — 4K Kenshi world map showing conflict zones with zoom, pan, and a sidebar listing conflicts grouped by winning mod. Toggle between exterior and interior conflict layers.
+- **Level data parsing** — Deep-parses .level files to detect exterior (world placement) and interior (building layout) conflicts at the item/property level.
+- **Three-way conflict indicators** — Green (winning), red (overridden), and yellow (both overridden by a third mod).
+
+### Interactive Conflict Map
+- **4K Kenshi world map** — Converted from the game's GUI map texture.
+- **Conflict zone overlays** — Red squares highlight zones with conflicts, click to see details.
+- **Zoom and pan** — Scroll wheel to zoom toward cursor, click and drag to pan.
+- **Exterior/Interior toggle** — Switch between viewing world placement and building interior conflicts.
+- **Sidebar grouped by winning mod** — Collapsible mod groups with zone sub-items showing conflicting mods and properties.
+- **Click-to-focus** — Click a zone on the map to scroll the sidebar to details. Click zone filenames in the conflicts tab to open the map.
+
+### Import & Export
+- **Export List** — Save your full setup (categories, load order, active/inactive state) to a shareable text file.
+- **Import List (BEEP format)** — Restore categories, ordering, and active state from a BEEP export file.
+- **Import List (generic)** — Import a plain list of .mod filenames to reorder uncategorized mods.
+- **Mod Packs** — Save and load complete mod configurations. Great for switching between playthroughs or backing up before AI sort.
+
+### AI-Assisted Sorting
+- **AI Sort Export** — Fetches Steam Workshop descriptions and builds a text file for AI chatbots.
+- **AI Sort Import** — Paste the AI's sorted response to apply the new category order.
+- No data is sent automatically — you are the middleman. The app only contacts Steam's public API.
+- Supports Claude (recommended for large lists) and ChatGPT.
 
 ### Other Features
-- **Dependency warnings** — Highlights mods that load before their dependencies (orange) or after mods that need them (yellow).
-- **AI-assisted sorting** — Export your mod list with full Steam Workshop descriptions, paste it into an AI chatbot (Claude, ChatGPT), and import the sorted result. Supports compact mode for large mod lists (500+).
-- **Mod packs** — Save and load complete mod configurations (categories, order, active/inactive state).
 - **Kenshi & Dark themes** — Toggle between a warm Kenshi-inspired theme with grain texture and a dark grey theme.
+- **Built-in tutorial** — Full usage guide accessible from the Tutorial tab.
+- **Dependency warnings** — Highlights mods that load before their dependencies (orange) or after mods that need them (yellow).
 - **Steam auto-detection** — Automatically finds your Kenshi installation and Steam Workshop folder.
 - **Mod preview images** — Displays Steam Workshop thumbnails in the detail panel.
-- **Integrated browsing** — View mod Steam/Nexus pages, the Kenshi load order guide, and the Steam Workshop directly in the app.
-- **Auto-update** — Checks for updates on launch and notifies you when a new version is available.
+- **Integrated browsing** — View mod Steam/Nexus pages, the Kenshi modding guide, and the Steam Workshop directly in the app.
+- **Auto-update** — Checks for updates on launch and notifies you with download links.
 - **Launch game** — Save your load order and launch Kenshi directly from the app.
 
 ## Install
@@ -61,17 +90,13 @@ Output is in `dist/win-unpacked/`.
 - Mods are discovered from `{GamePath}/Mods/` (local) and Steam Workshop (`steamapps/workshop/content/233860/`).
 - Mod metadata (author, description, dependencies) is read from the binary `.mod` file header.
 - Conflict detection parses `.mod` files for data conflicts, `.level` files for world/interior conflicts, and scans directories for asset overrides.
+- Level data items with zone coordinates are mapped to the Kenshi world map for visual conflict display.
 - Load order is saved to `{GamePath}/data/mods.cfg` — the same file Kenshi reads.
 - Categories, mod assignments, and ordering are persisted in `%APPDATA%/kenshi-mod-sorter/config.json`.
 
-## AI Sort
+## AI Sort Export Modes
 
-The AI Sort feature generates a text file containing your mod names and descriptions, which you paste into an AI chatbot. The AI sorts them into categories based on the [Kenshi mod load order guide](https://steamcommunity.com/sharedfiles/filedetails/?id=1850250979). You then paste the response back into the app to apply the order.
-
-No data is sent automatically — you are the middleman. The app only contacts Steam's public API to fetch mod descriptions.
-
-Export modes:
-- **Uncategorized Only** — Only unsorted mods, full descriptions
+- **Uncategorized Only** — Only unsorted mods, full descriptions (recommended)
 - **Uncategorized Compact** — Unsorted mods with tags + truncated descriptions (best for 50+ mods)
 - **All Mods Compact** — Everything in one file with tags + short descriptions (handles 500+ mods)
 - **All Mods Full** — Complete descriptions (most accurate, largest file)
