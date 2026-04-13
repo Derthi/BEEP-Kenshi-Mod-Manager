@@ -1147,6 +1147,15 @@ function renderColumns() {
   // Preserve scroll position across re-renders
   const savedScrollTop = columnsContainer.scrollTop;
   const savedScrollLeft = columnsContainer.scrollLeft;
+  // Also save pinned panel mod list scroll
+  const pinnedModsList = document.querySelector('#pinned-uncat-panel .column-mods');
+  const savedPinnedScroll = pinnedModsList ? pinnedModsList.scrollTop : 0;
+  // Save per-column scroll positions
+  const savedColScrolls = {};
+  for (const col of document.querySelectorAll('.column-mods')) {
+    const catId = col.closest('.category-column')?.dataset.category;
+    if (catId) savedColScrolls[catId] = col.scrollTop;
+  }
   columnsContainer.innerHTML = '';
 
   const sorted = [...categories].sort((a, b) => a.order - b.order);
@@ -1214,10 +1223,18 @@ function renderColumns() {
     pinnedHandle.classList.add('hidden');
   }
 
-  // Restore scroll position after layout
+  // Restore scroll positions after layout
   requestAnimationFrame(() => {
     columnsContainer.scrollTop = savedScrollTop;
     columnsContainer.scrollLeft = savedScrollLeft;
+    // Restore pinned panel scroll
+    const newPinnedMods = document.querySelector('#pinned-uncat-panel .column-mods');
+    if (newPinnedMods) newPinnedMods.scrollTop = savedPinnedScroll;
+    // Restore per-column scroll positions
+    for (const col of document.querySelectorAll('.column-mods')) {
+      const catId = col.closest('.category-column')?.dataset.category;
+      if (catId && savedColScrolls[catId]) col.scrollTop = savedColScrolls[catId];
+    }
   });
 
   updateDetailPanel();
