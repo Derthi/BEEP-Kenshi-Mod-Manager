@@ -259,6 +259,49 @@ body::after {
   min-height: 0;
 }
 
+.pinned-search {
+  padding: 4px 6px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #252528;
+}
+
+.pinned-search-input {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 11px;
+  background: #18181e;
+  border: 1px solid #333;
+  border-radius: 3px;
+  color: #e0e0e0;
+  outline: none;
+}
+
+.pinned-search-input:focus {
+  border-color: #4a6fa5;
+}
+
+.pinned-search-input::placeholder {
+  color: #666;
+}
+
+body.kenshi-theme .pinned-search {
+  border-bottom-color: #6a5a45;
+}
+
+body.kenshi-theme .pinned-search-input {
+  background: #332a22;
+  border-color: #6a5a45;
+  color: #e8dcc8;
+}
+
+body.kenshi-theme .pinned-search-input:focus {
+  border-color: #ab5a42;
+}
+
+body.kenshi-theme .pinned-search-input::placeholder {
+  color: #8a7a60;
+}
+
 .btn.btn-pinned-active {
   background: #4a6fa5;
   border-color: #5a80b8;

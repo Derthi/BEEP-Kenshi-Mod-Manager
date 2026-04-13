@@ -1167,14 +1167,43 @@ function renderColumns() {
   // Render columns
   const pinnedPanel = document.getElementById('pinned-uncat-panel');
   const pinnedHandle = document.getElementById('pinned-resize-handle');
+  // Preserve search value across re-renders
+  const prevSearch = pinnedPanel.querySelector('.pinned-search-input');
+  const searchVal = prevSearch ? prevSearch.value : '';
   pinnedPanel.innerHTML = '';
 
   for (const cat of allCats) {
     const column = createColumn(cat.id, cat.name, cat.color || '#555', globalOrder);
     if (uncategorizedPinned && cat.id === UNCATEGORIZED) {
+      // Add search filter input
+      const searchBox = document.createElement('div');
+      searchBox.className = 'pinned-search';
+      const searchInput = document.createElement('input');
+      searchInput.type = 'text';
+      searchInput.className = 'pinned-search-input';
+      searchInput.placeholder = 'Search mods...';
+      searchInput.value = searchVal;
+      searchBox.appendChild(searchInput);
+
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase();
+        const cards = pinnedPanel.querySelectorAll('.mod-card');
+        cards.forEach((card) => {
+          const name = card.querySelector('.card-name');
+          const text = name ? name.textContent.toLowerCase() : '';
+          card.style.display = text.includes(query) ? '' : 'none';
+        });
+      });
+
+      pinnedPanel.appendChild(searchBox);
       pinnedPanel.appendChild(column);
       pinnedPanel.classList.remove('hidden');
       pinnedHandle.classList.remove('hidden');
+
+      // Apply existing filter
+      if (searchVal) {
+        requestAnimationFrame(() => searchInput.dispatchEvent(new Event('input')));
+      }
     } else {
       columnsContainer.appendChild(column);
     }
