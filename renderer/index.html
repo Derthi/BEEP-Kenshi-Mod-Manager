@@ -64,6 +64,7 @@
       </div>
       <div class="toolbar-right">
         <button id="pin-uncat-btn" class="btn" title="Pin Uncategorized panel to left side">Pin Uncategorized</button>
+        <button id="auto-sort-btn" class="btn btn-primary" title="Auto-categorize mods from the community database">Auto-Sort</button>
         <button id="reset-categories-btn" class="btn btn-danger-subtle">Reset Categories</button>
         <button id="add-category-btn" class="btn">+ Add Category</button>
         <button id="layout-toggle-btn" class="btn btn-icon" title="Toggle horizontal/vertical layout">&#8646;</button>
@@ -83,14 +84,18 @@
     <div class="content">
       <!-- Detail Panel (left sidebar) -->
       <div id="detail-panel" class="detail-panel">
-        <div class="detail-tabs">
-          <button id="tab-details" class="detail-tab active">Details</button>
-          <button id="tab-modpage" class="detail-tab">Mod Page</button>
-          <button id="tab-guide" class="detail-tab">Modding Guide</button>
-          <button id="tab-conflicts" class="detail-tab">Conflicts</button>
-          <button id="tab-packs" class="detail-tab">Packs</button>
-          <button id="tab-workshop" class="detail-tab">Workshop</button>
-          <button id="tab-tutorial" class="detail-tab">Tutorial</button>
+        <div class="detail-tabs-wrap">
+          <div class="detail-tabs detail-tabs-top">
+            <button id="tab-guide" class="detail-tab">Modding Guide</button>
+            <button id="tab-workshop" class="detail-tab">Workshop</button>
+            <button id="tab-packs" class="detail-tab">Packs</button>
+            <button id="tab-tutorial" class="detail-tab">Tutorial</button>
+          </div>
+          <div class="detail-tabs detail-tabs-bottom">
+            <button id="tab-details" class="detail-tab active">Details</button>
+            <button id="tab-modpage" class="detail-tab">Mod Page</button>
+            <button id="tab-conflicts" class="detail-tab">Conflicts</button>
+          </div>
         </div>
         <div id="detail-view" class="detail-view">
           <div class="detail-placeholder">Select a mod to view details</div>
@@ -135,7 +140,7 @@
         <div id="tutorial-view" class="detail-view hidden">
           <div class="tutorial-guide">
             <h4>Getting Started</h4>
-            <p>BEEP organizes your Kenshi mods into categories displayed as columns. Load order reads left-to-right, top-to-bottom. Your existing mods.cfg load order is preserved on first launch.</p>
+            <p>BEEP helps you organize your Kenshi mods into categories displayed as columns. Load order reads left-to-right, top-to-bottom. Your existing mods.cfg load order is preserved on first launch.</p>
 
             <hr class="tutorial-divider">
 
@@ -247,6 +252,13 @@ Test.mod</pre>
         <div id="conflicts-view" class="detail-view hidden">
           <div class="conflicts-header">
             <h4 id="conflicts-title">Conflicts</h4>
+            <div class="conflict-focus-toggle" title="Dim non-conflicting mods">
+              <span class="theme-label">Focus</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="conflict-focus-cb">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
           </div>
           <div id="conflicts-placeholder" class="detail-placeholder">Select a mod to view its conflicts, or click "Check Conflicts" in the toolbar first.</div>
           <div id="conflicts-content"></div>

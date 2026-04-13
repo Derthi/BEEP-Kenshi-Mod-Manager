@@ -361,30 +361,36 @@ body.kenshi-theme .pinned-search-input::placeholder {
   min-height: 32px;
 }
 
+.category-columns.vertical .mod-card {
+  margin: 3px 4px;
+}
+
 .category-column.drag-over-column {
   background: rgba(74, 111, 165, 0.08);
 }
 
 /* Column Header */
 .column-header {
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-top: 4px solid #555;
   background: #141418;
   border-bottom: 1px solid #252528;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 4px;
   user-select: none;
-  cursor: grab;
 }
 
-.column-header:active {
-  cursor: grabbing;
+.column-header-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .column-header.header-drag-over {
   background: #2a2a50;
 }
+
 
 .column-header-checkbox {
   cursor: pointer;
@@ -406,6 +412,63 @@ body.kenshi-theme .pinned-search-input::placeholder {
   color: #666;
   flex-shrink: 0;
   margin-left: 6px;
+}
+
+
+.column-move-btn {
+  font-size: 11px;
+  color: #777;
+  cursor: pointer;
+  padding: 2px 6px;
+  flex-shrink: 0;
+  background: #252528;
+  border: 1px solid #333;
+  border-radius: 3px;
+}
+
+.column-move-btn:hover {
+  color: #e0e0e0;
+  background: #353538;
+}
+
+.column-header-row .column-move-btn:last-child {
+  margin-left: auto;
+}
+
+body.kenshi-theme .column-move-btn {
+  background: #504535;
+  border-color: #6a5a45;
+  color: #baa888;
+}
+
+body.kenshi-theme .column-move-btn:hover {
+  color: #e8dcc8;
+  background: #605342;
+}
+
+.column-delete-btn {
+  color: #fff;
+  background: #8b3333 !important;
+  border-color: #a33 !important;
+}
+
+.column-delete-btn:hover {
+  background: #b33 !important;
+}
+
+.column-header-name-editable {
+  cursor: pointer;
+  border-bottom: 1px dashed #555;
+}
+
+.column-header-name-editable:hover {
+  color: #8ab4f8;
+  border-bottom-color: #8ab4f8;
+}
+
+body.kenshi-theme .column-header-name-editable:hover {
+  color: #f4e4c4;
+  border-bottom-color: #f4e4c4;
 }
 
 /* Column Mod List */
@@ -447,8 +510,68 @@ body.kenshi-theme .pinned-search-input::placeholder {
   margin-top: -1px;
 }
 
+/* Drop insertion indicators */
+.mod-card {
+  position: relative;
+}
+
+.mod-card.drop-above::before,
+.mod-card.drop-below::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #4a6fa5;
+  border-radius: 2px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.mod-card.drop-above::before {
+  top: -2px;
+}
+
+.mod-card.drop-below::after {
+  bottom: -2px;
+}
+
+.mod-card.drop-above,
+.mod-card.drop-below {
+  background: rgba(74, 111, 165, 0.1) !important;
+}
+
+body.kenshi-theme .mod-card.drop-above::before,
+body.kenshi-theme .mod-card.drop-below::after {
+  background: #ab5a42;
+}
+
+body.kenshi-theme .mod-card.drop-above,
+body.kenshi-theme .mod-card.drop-below {
+  background: rgba(171, 90, 66, 0.1) !important;
+}
+
 .mod-card.dragging {
   opacity: 0.3;
+}
+
+/* Placed/moved flash animation */
+@keyframes mod-placed-flash {
+  0% { background: rgba(74, 111, 165, 0.4); }
+  100% { background: transparent; }
+}
+
+.mod-card.mod-placed {
+  animation: mod-placed-flash 0.8s ease-out;
+}
+
+@keyframes mod-placed-flash-kenshi {
+  0% { background: rgba(171, 90, 66, 0.4); }
+  100% { background: transparent; }
+}
+
+body.kenshi-theme .mod-card.mod-placed {
+  animation: mod-placed-flash-kenshi 0.8s ease-out;
 }
 
 .drag-ghost {
@@ -622,10 +745,21 @@ body.kenshi-theme .drag-ghost-more {
   overflow: hidden;
 }
 
+.detail-tabs-wrap {
+  flex-shrink: 0;
+}
+
 .detail-tabs {
   display: flex;
-  border-bottom: 1px solid #252528;
   flex-shrink: 0;
+}
+
+.detail-tabs-top {
+  border-bottom: 1px solid #1e1e22;
+}
+
+.detail-tabs-bottom {
+  border-bottom: 1px solid #252528;
 }
 
 .detail-tab {
@@ -974,11 +1108,33 @@ body.kenshi-theme .drag-ghost-more {
 /* ===== Conflict Display ===== */
 .conflicts-header {
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .conflicts-header h4 {
   font-size: 13px;
   color: #8ab4f8;
+}
+
+.conflict-focus-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Dim non-conflicting mods when focus mode is on */
+.conflict-focus-active .mod-card {
+  opacity: 0.15;
+  transition: opacity 0.15s;
+}
+
+.conflict-focus-active .mod-card.conflict-highlight-green,
+.conflict-focus-active .mod-card.conflict-highlight-red,
+.conflict-focus-active .mod-card.conflict-highlight-yellow,
+.conflict-focus-active .mod-card.selected {
+  opacity: 1;
 }
 
 .conflict-section-title {
@@ -2005,7 +2161,11 @@ body.kenshi-theme .detail-panel {
   border-right-color: #6a5a45;
 }
 
-body.kenshi-theme .detail-tabs {
+body.kenshi-theme .detail-tabs-top {
+  border-bottom-color: #504535;
+}
+
+body.kenshi-theme .detail-tabs-bottom {
   border-bottom-color: #6a5a45;
 }
 

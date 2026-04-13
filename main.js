@@ -81,6 +81,28 @@ ipcMain.handle('fetch-workshop-details', (_event, workshopIds) => {
   return steamApi.fetchWorkshopDetails(workshopIds);
 });
 
+// Mod database
+ipcMain.handle('load-mod-database', () => {
+  const fs = require('fs');
+  // Look for database in app directory (portable)
+  const basePath = app.isPackaged ? path.dirname(app.getPath('exe')) : __dirname;
+  const dbPath = path.join(basePath, 'mod-database.json');
+  if (!fs.existsSync(dbPath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle('save-mod-database', (_event, data) => {
+  const fs = require('fs');
+  const basePath = app.isPackaged ? path.dirname(app.getPath('exe')) : __dirname;
+  const dbPath = path.join(basePath, 'mod-database.json');
+  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
+  return dbPath;
+});
+
 // Open file dialog
 ipcMain.handle('open-file-dialog', async (_event, filters) => {
   const result = await dialog.showOpenDialog(mainWindow, {

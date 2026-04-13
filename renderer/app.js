@@ -12,6 +12,8 @@ let selectedMods = new Set(); // multi-select filenames
 let lastClickedMod = null; // for shift-click range select
 let uncategorizedPinned = false;
 let tutorialDismissed = false;
+let minimizedCategories = new Set();
+let justMovedMods = new Set();
 
 const UNCATEGORIZED = 'uncategorized';
 
@@ -224,6 +226,7 @@ layoutToggleBtn.addEventListener('click', () => {
   verticalLayout = !verticalLayout;
   columnsContainer.classList.toggle('vertical', verticalLayout);
   layoutToggleBtn.title = verticalLayout ? 'Switch to horizontal layout' : 'Switch to vertical layout';
+  renderColumns();
 });
 
 // Theme toggle
@@ -589,6 +592,66 @@ importListBtn.addEventListener('click', async () => {
     persistConfig();
     renderColumns();
     setStatus(`Imported generic mod list (${filenames.length} mods reordered in Uncategorized).`, 'success');
+  }
+});
+
+// ===== Auto-Sort from Database =====
+
+const autoSortBtn = document.getElementById('auto-sort-btn');
+
+autoSortBtn.addEventListener('click', async () => {
+  setStatus('Loading mod database...');
+  const db = await window.api.loadModDatabase();
+  if (!db) {
+    setStatus('No mod database found (mod-database.json).', 'error');
+    return;
+  }
+
+  // db format: { "filename.mod": "Category Name", ... }
+  let sorted = 0;
+  let created = 0;
+
+  for (const mod of mods) {
+    if (mod.category !== UNCATEGORIZED) continue; // skip already-categorized
+    const catName = db[mod.filename];
+    if (!catName) continue;
+
+    // Find or create the category
+    let cat = categories.find((c) => c.name === catName);
+    if (!cat) {
+      cat = { id: generateId(), name: catName, color: randomColor(), order: categories.length };
+      categories.push(cat);
+      modOrders[cat.id] = [];
+      created++;
+    }
+
+    // Move mod to category (skip render)
+    moveMod(mod, cat.id, null, true);
+    sorted++;
+  }
+
+  if (sorted > 0) {
+    syncModCategories();
+    persistConfig();
+    renderColumns();
+    setStatus(`Auto-sorted ${sorted} mods into categories (${created} new categories created).`, 'success');
+  } else {
+    setStatus('No uncategorized mods matched the database.', 'error');
+  }
+});
+
+// Build database from current categories (dev tool — Ctrl+Shift+B)
+document.addEventListener('keydown', async (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key === 'B') {
+    const db = {};
+    for (const mod of mods) {
+      if (mod.category === UNCATEGORIZED) continue;
+      const cat = categories.find((c) => c.id === mod.category);
+      if (cat) db[mod.filename] = cat.name;
+    }
+    const count = Object.keys(db).length;
+    const dbPath = await window.api.saveModDatabase(db);
+    setStatus(`Database built: ${count} mods saved to ${dbPath}`, 'success');
   }
 });
 
@@ -1223,6 +1286,9 @@ function renderColumns() {
     pinnedHandle.classList.add('hidden');
   }
 
+  // Clear just-moved tracking after cards are created
+  justMovedMods.clear();
+
   // Restore scroll positions after layout
   requestAnimationFrame(() => {
     columnsContainer.scrollTop = savedScrollTop;
@@ -1271,6 +1337,23 @@ function createColumn(catId, name, color, globalOrder) {
   const headerName = document.createElement('span');
   headerName.className = 'column-header-name';
   headerName.textContent = name;
+  // Make name clickable to rename (not for uncategorized)
+  if (catId !== UNCATEGORIZED) {
+    headerName.classList.add('column-header-name-editable');
+    headerName.title = 'Click to rename';
+    headerName.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const cat = categories.find((c) => c.id === catId);
+      if (!cat) return;
+      const newName = await showInputModal('Category name:', cat.name);
+      if (newName && newName.trim()) {
+        cat.name = newName.trim();
+        syncModCategories();
+        persistConfig();
+        renderColumns();
+      }
+    });
+  }
 
   const headerCount = document.createElement('span');
   headerCount.className = 'column-header-count';
@@ -1282,7 +1365,21 @@ function createColumn(catId, name, color, globalOrder) {
     headerCount.textContent = '0';
   }
 
-  header.append(headerCb, headerName, headerCount);
+  // Collapse/expand button
+  const minimizeBtn = document.createElement('span');
+  minimizeBtn.className = 'column-move-btn';
+  const isMinimized = minimizedCategories.has(catId);
+  minimizeBtn.textContent = isMinimized ? '+' : '\u2212';
+  minimizeBtn.title = isMinimized ? 'Expand category' : 'Collapse category';
+  minimizeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (minimizedCategories.has(catId)) {
+      minimizedCategories.delete(catId);
+    } else {
+      minimizedCategories.add(catId);
+    }
+    renderColumns();
+  });
 
   // Right-click context menu (not for uncategorized)
   if (catId !== UNCATEGORIZED) {
@@ -1291,37 +1388,97 @@ function createColumn(catId, name, color, globalOrder) {
       showContextMenu(e.clientX, e.clientY, catId);
     });
 
-    // Drag column headers to reorder categories
-    header.draggable = true;
+    // Direction-aware move buttons
+    const upIcon = verticalLayout ? '\u25B2' : '\u25C0';
+    const downIcon = verticalLayout ? '\u25BC' : '\u25B6';
 
-    header.addEventListener('dragstart', (e) => {
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('application/category-id', catId);
-      // Prevent mod card drag data from conflicting
+    function swapCategory(direction) {
+      const sorted = [...categories].sort((a, b) => a.order - b.order);
+      const idx = sorted.findIndex((c) => c.id === catId);
+      const swapIdx = idx + direction;
+      if (swapIdx < 0 || swapIdx >= sorted.length) return;
+      // Simple order value swap
+      const tmp = sorted[idx].order;
+      sorted[idx].order = sorted[swapIdx].order;
+      sorted[swapIdx].order = tmp;
+      syncModCategories();
+      persistConfig();
+      renderColumns();
+    }
+
+    const moveUp = document.createElement('span');
+    moveUp.className = 'column-move-btn';
+    moveUp.textContent = upIcon;
+    moveUp.title = verticalLayout ? 'Move category up' : 'Move category left';
+    moveUp.addEventListener('click', (e) => { e.stopPropagation(); swapCategory(-1); });
+
+    const moveDown = document.createElement('span');
+    moveDown.className = 'column-move-btn';
+    moveDown.textContent = downIcon;
+    moveDown.title = verticalLayout ? 'Move category down' : 'Move category right';
+    moveDown.addEventListener('click', (e) => { e.stopPropagation(); swapCategory(1); });
+
+    const headerRow1 = document.createElement('div');
+    headerRow1.className = 'column-header-row';
+    headerRow1.append(headerName, headerCount);
+
+    // Color button
+    const colorBtn = document.createElement('span');
+    colorBtn.className = 'column-move-btn';
+    colorBtn.style.backgroundColor = color;
+    colorBtn.style.width = '16px';
+    colorBtn.style.height = '16px';
+    colorBtn.style.borderRadius = '3px';
+    colorBtn.style.display = 'inline-block';
+    colorBtn.textContent = '';
+    colorBtn.title = 'Change color';
+    colorBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      colorPicker.value = color;
+      colorPicker.dataset.catId = catId;
+      colorPicker.click();
     });
 
-    header.addEventListener('dragover', (e) => {
-      // Only accept category drags
-      if (!e.dataTransfer.types.includes('application/category-id')) return;
-      e.preventDefault();
+    // Delete button
+    const deleteBtn = document.createElement('span');
+    deleteBtn.className = 'column-move-btn column-delete-btn';
+    deleteBtn.textContent = '\u2715';
+    deleteBtn.title = 'Delete category';
+    deleteBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      e.dataTransfer.dropEffect = 'move';
-      header.classList.add('header-drag-over');
+      const cat = categories.find((c) => c.id === catId);
+      if (!cat) return;
+      const confirmed = await showConfirmModal(`Delete category "${cat.name}"?\n\nAll mods will be moved to Uncategorized.`);
+      if (!confirmed) return;
+      for (const mod of mods) {
+        if (mod.category === cat.id) {
+          mod.category = UNCATEGORIZED;
+          delete modCategories[mod.filename];
+        }
+      }
+      categories = categories.filter((c) => c.id !== cat.id);
+      delete modOrders[cat.id];
+      categories.sort((a, b) => a.order - b.order).forEach((c, i) => c.order = i);
+      syncModCategories();
+      persistConfig();
+      renderColumns();
     });
 
-    header.addEventListener('dragleave', () => {
-      header.classList.remove('header-drag-over');
-    });
+    const headerRow2 = document.createElement('div');
+    headerRow2.className = 'column-header-row';
+    headerRow2.append(headerCb, moveUp, moveDown, colorBtn, minimizeBtn, deleteBtn);
 
-    header.addEventListener('drop', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      header.classList.remove('header-drag-over');
-      const srcId = e.dataTransfer.getData('application/category-id');
-      if (!srcId || srcId === catId) return;
-      reorderCategory(srcId, catId);
-    });
+    header.append(headerRow1, headerRow2);
+  } else {
+    const headerRow1 = document.createElement('div');
+    headerRow1.className = 'column-header-row';
+    headerRow1.append(headerName, headerCount);
+
+    const headerRow2 = document.createElement('div');
+    headerRow2.className = 'column-header-row';
+    headerRow2.append(headerCb, minimizeBtn);
+
+    header.append(headerRow1, headerRow2);
   }
 
   col.appendChild(header);
@@ -1329,6 +1486,7 @@ function createColumn(catId, name, color, globalOrder) {
   // Mod list
   const modsList = document.createElement('div');
   modsList.className = 'column-mods';
+  if (minimizedCategories.has(catId)) modsList.classList.add('hidden');
   modsList.dataset.category = catId;
 
   for (const mod of catMods) {
@@ -1360,10 +1518,12 @@ function createColumn(catId, name, color, globalOrder) {
 
     // If dropping on empty area of column, append to end
     if (e.target === modsList || e.target === col) {
+      const isBulk = filenames.length > 1;
       for (const fn of filenames) {
         const mod = mods.find((m) => m.filename === fn);
-        if (mod) moveMod(mod, catId, null);
+        if (mod) moveMod(mod, catId, null, isBulk);
       }
+      if (isBulk) { syncModCategories(); persistConfig(); renderColumns(); }
     }
   });
 
@@ -1377,6 +1537,12 @@ function createModCard(mod, catColor, globalOrder) {
   card.style.borderLeftColor = catColor;
   if (!mod.active) card.classList.add('inactive');
   if (selectedMods.has(mod.filename) || (selectedMod && selectedMod.filePath === mod.filePath)) card.classList.add('selected');
+
+  // Flash animation for just-moved mods
+  if (justMovedMods.has(mod.filename)) {
+    card.classList.add('mod-placed');
+    card.addEventListener('animationend', () => card.classList.remove('mod-placed'), { once: true });
+  }
   card.dataset.filename = mod.filename;
 
   // Load order number (replaces drag handle)
@@ -1540,8 +1706,8 @@ function createModCard(mod, catColor, globalOrder) {
 
   card.addEventListener('dragend', () => {
     card.classList.remove('dragging');
-    document.querySelectorAll('.drag-over-card, .drag-over-column').forEach((el) => {
-      el.classList.remove('drag-over-card', 'drag-over-column');
+    document.querySelectorAll('.drag-over-card, .drag-over-column, .drop-above, .drop-below').forEach((el) => {
+      el.classList.remove('drag-over-card', 'drag-over-column', 'drop-above', 'drop-below');
     });
   });
 
@@ -1549,30 +1715,50 @@ function createModCard(mod, catColor, globalOrder) {
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
-    card.classList.add('drag-over-card');
+    // Show insertion indicator based on cursor position (top/bottom half)
+    const rect = card.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    card.classList.remove('drop-above', 'drop-below');
+    if (e.clientY < midY) {
+      card.classList.add('drop-above');
+    } else {
+      card.classList.add('drop-below');
+    }
   });
 
   card.addEventListener('dragleave', () => {
-    card.classList.remove('drag-over-card');
+    card.classList.remove('drop-above', 'drop-below');
   });
 
   card.addEventListener('drop', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    card.classList.remove('drag-over-card');
+    const droppedAbove = card.classList.contains('drop-above');
+    card.classList.remove('drop-above', 'drop-below');
     const data = e.dataTransfer.getData('text/plain');
     if (!data) return;
     const filenames = data.split('\n').filter(Boolean);
     if (filenames.length === 0 || (filenames.length === 1 && filenames[0] === mod.filename)) return;
 
-    // Drop onto this card — insert before it in this card's category
-    // Move in order so they stack correctly
+    // Insert before this card (if dropped above) or after (if dropped below)
+    const beforeFilename = droppedAbove ? mod.filename : null;
+    const afterFilename = droppedAbove ? null : mod.filename;
+
+    const isBulk = filenames.length > 1;
     for (const fn of filenames) {
       const draggedMod = mods.find((m) => m.filename === fn);
       if (draggedMod && draggedMod.filename !== mod.filename) {
-        moveMod(draggedMod, mod.category, mod.filename);
+        if (droppedAbove) {
+          moveMod(draggedMod, mod.category, mod.filename, isBulk);
+        } else {
+          const catMods = getModsForCategory(mod.category);
+          const idx = catMods.findIndex((m) => m.filename === mod.filename);
+          const nextMod = idx >= 0 && idx < catMods.length - 1 ? catMods[idx + 1].filename : null;
+          moveMod(draggedMod, mod.category, nextMod, isBulk);
+        }
       }
     }
+    if (isBulk) { syncModCategories(); persistConfig(); renderColumns(); }
   });
 
   return card;
@@ -1580,15 +1766,11 @@ function createModCard(mod, catColor, globalOrder) {
 
 // ===== Drag Move =====
 
-function moveMod(mod, targetCatId, beforeFilename) {
-  // If moving to uncategorized and it was active in another category, keep active
-  // If deactivated, it's already in uncategorized
-
+function moveMod(mod, targetCatId, beforeFilename, skipRender) {
   mod.category = targetCatId;
   modCategories[mod.filename] = targetCatId === UNCATEGORIZED ? undefined : targetCatId;
   if (targetCatId === UNCATEGORIZED) delete modCategories[mod.filename];
 
-  // Update order lists
   // Remove from all order lists
   for (const key of Object.keys(modOrders)) {
     modOrders[key] = (modOrders[key] || []).filter((f) => f !== mod.filename);
@@ -1609,9 +1791,12 @@ function moveMod(mod, targetCatId, beforeFilename) {
     targetList.push(mod.filename);
   }
 
-  syncModCategories();
-  persistConfig();
-  renderColumns();
+  justMovedMods.add(mod.filename);
+  if (!skipRender) {
+    syncModCategories();
+    persistConfig();
+    renderColumns();
+  }
 }
 
 // ===== Active/Inactive Toggle =====
@@ -1692,8 +1877,11 @@ function showModContextMenu(x, y, mod) {
     item.appendChild(document.createTextNode(cat.name));
     item.addEventListener('click', () => {
       for (const m of bulkMods) {
-        moveMod(m, cat.id, null);
+        moveMod(m, cat.id, null, true);
       }
+      syncModCategories();
+      persistConfig();
+      renderColumns();
       selectedMods.clear();
       hideContextMenu();
     });
@@ -1764,21 +1952,98 @@ colorPicker.addEventListener('input', () => {
 
 // ===== Add Category =====
 
-addCategoryBtn.addEventListener('click', async () => {
-  const name = await showInputModal('New category name:', '');
-  if (!name || !name.trim()) return;
+addCategoryBtn.addEventListener('click', () => {
+  // Build position options for the select
+  const sorted = [...categories].sort((a, b) => a.order - b.order);
 
-  const newCat = {
-    id: generateId(),
-    name: name.trim(),
-    color: randomColor(),
-    order: categories.length,
-  };
-  categories.push(newCat);
-  modOrders[newCat.id] = [];
-  syncModCategories();
-  persistConfig();
-  renderColumns();
+  // Create a custom modal with name input + position select
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+
+  const box = document.createElement('div');
+  box.className = 'modal-box';
+  box.style.minWidth = '320px';
+
+  const title = document.createElement('div');
+  title.className = 'modal-title';
+  title.textContent = 'New Category';
+
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = 'modal-input';
+  nameInput.placeholder = 'Category name...';
+  nameInput.autocomplete = 'off';
+  nameInput.style.marginBottom = '10px';
+
+  const posLabel = document.createElement('div');
+  posLabel.style.cssText = 'font-size:11px;color:#888;margin-bottom:4px;';
+  posLabel.textContent = 'Load in front of:';
+
+  const posSelect = document.createElement('select');
+  posSelect.className = 'modal-input';
+  posSelect.style.marginBottom = '10px';
+
+  for (const cat of sorted) {
+    const opt = document.createElement('option');
+    opt.value = cat.id;
+    opt.textContent = cat.name;
+    posSelect.appendChild(opt);
+  }
+  const endOpt = document.createElement('option');
+  endOpt.value = '__end__';
+  endOpt.textContent = '(at the end)';
+  endOpt.selected = true;
+  posSelect.appendChild(endOpt);
+
+  const buttons = document.createElement('div');
+  buttons.className = 'modal-buttons';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn';
+  cancelBtn.textContent = 'Cancel';
+  const okBtn = document.createElement('button');
+  okBtn.className = 'btn btn-primary';
+  okBtn.textContent = 'Create';
+
+  buttons.append(cancelBtn, okBtn);
+  box.append(title, nameInput, posLabel, posSelect, buttons);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  nameInput.focus();
+
+  function close() { document.body.removeChild(overlay); }
+
+  cancelBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  nameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') okBtn.click();
+    if (e.key === 'Escape') close();
+  });
+
+  okBtn.addEventListener('click', () => {
+    const name = nameInput.value.trim();
+    if (!name) return;
+
+    const posId = posSelect.value;
+    const insertOrder = posId === '__end__' ? categories.length : categories.find((c) => c.id === posId)?.order ?? categories.length;
+
+    for (const c of categories) {
+      if (c.order >= insertOrder) c.order++;
+    }
+
+    const newCat = {
+      id: generateId(),
+      name,
+      color: randomColor(),
+      order: insertOrder,
+    };
+    categories.push(newCat);
+    modOrders[newCat.id] = [];
+    syncModCategories();
+    persistConfig();
+    renderColumns();
+    close();
+  });
 });
 
 // ===== Reset Categories =====
@@ -1847,6 +2112,14 @@ tabModpage.addEventListener('click', () => {
 tabConflicts.addEventListener('click', () => {
   switchTab(tabConflicts);
   renderConflictsTab();
+});
+
+// Conflict focus toggle — dims non-conflicting mods
+const conflictFocusCb = document.getElementById('conflict-focus-cb');
+conflictFocusCb.addEventListener('change', () => {
+  document.getElementById('category-columns').classList.toggle('conflict-focus-active', conflictFocusCb.checked);
+  const pinnedPanel = document.getElementById('pinned-uncat-panel');
+  pinnedPanel.classList.toggle('conflict-focus-active', conflictFocusCb.checked);
 });
 tabPacks.addEventListener('click', () => {
   switchTab(tabPacks);
