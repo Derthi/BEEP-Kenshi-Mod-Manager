@@ -59,17 +59,21 @@ ipcMain.handle('save-load-order', (_event, data) => {
   return loadOrder.saveLoadOrder(data.gamePath, data.activeModFilenames);
 });
 
-// Mod Packs
+// Mod Packs — stored alongside the app for portability
+const packsBasePath = app.isPackaged
+  ? path.dirname(app.getPath('exe'))
+  : __dirname;
+
 ipcMain.handle('get-packs', () => {
-  return configStore.loadPacks(app.getPath('userData'));
+  return configStore.loadPacks(packsBasePath);
 });
 
 ipcMain.handle('save-pack', (_event, pack) => {
-  configStore.savePack(app.getPath('userData'), pack);
+  configStore.savePack(packsBasePath, pack);
 });
 
 ipcMain.handle('delete-pack', (_event, packName) => {
-  configStore.deletePack(app.getPath('userData'), packName);
+  configStore.deletePack(packsBasePath, packName);
 });
 
 // Steam API
