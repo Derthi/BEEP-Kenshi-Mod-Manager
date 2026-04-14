@@ -1398,13 +1398,14 @@ body.kenshi-theme .conflict-value-divider {
 }
 
 /* Dependency highlights */
-.mod-card.dep-highlight-yellow {
-  background: rgba(200, 180, 50, 0.15);
-  border-left-color: #c8b432 !important;
+.mod-card.dep-highlight-red {
+  background: rgba(220, 50, 50, 0.15);
+  border-left-color: #dc3232 !important;
 }
 
-.detail-dep-yellow {
-  color: #c8b432;
+.dep-missing {
+  color: #dc3232;
+  font-weight: bold;
 }
 
 .detail-dep-orange {

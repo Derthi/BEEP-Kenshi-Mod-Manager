@@ -17,6 +17,22 @@ let justMovedMods = new Set();
 
 const UNCATEGORIZED = 'uncategorized';
 
+// Check if a dependency is satisfied — uses case-insensitive substring matching
+// (same approach as Kenshi Mod Manager). Dep "Hats" matches filename "Hats.mod".
+// Only active mods count as satisfying a dependency.
+function isDepInstalled(dep, activeOnly = true) {
+  const depLower = dep.toLowerCase();
+  return mods.some((m) => {
+    if (activeOnly && !m.active) return false;
+    return m.filename.toLowerCase().includes(depLower);
+  });
+}
+
+function findDepMod(dep) {
+  const depLower = dep.toLowerCase();
+  return mods.find((m) => m.filename.toLowerCase().includes(depLower));
+}
+
 // ===== Modal Prompt (replaces window.prompt) =====
 
 function showInputModal(title, defaultValue) {
@@ -195,7 +211,8 @@ async function loadMods() {
     renderColumns();
     const activeCount = mods.filter((m) => m.active).length;
     modCount.textContent = `${mods.length} mods, ${activeCount} active`;
-    setStatus('Ready');
+
+    updateDepStatus();
   } catch (err) {
     setStatus('Error loading mods: ' + err.message, 'error');
   }
@@ -1082,6 +1099,27 @@ function setStatus(msg, type) {
   if (type) statusBar.classList.add(type);
 }
 
+function updateDepStatus() {
+  let depProblems = 0;
+  const problemMods = new Set();
+  for (const mod of mods) {
+    if (!mod.active) continue;
+    const deps = (mod.dependencies || []).concat(mod.references || []);
+    for (const dep of deps) {
+      const depMod = findDepMod(dep);
+      if (!depMod || !depMod.active) {
+        depProblems++;
+        problemMods.add(mod.displayName);
+      }
+    }
+  }
+  if (depProblems > 0) {
+    setStatus(`Warning: ${depProblems} dependency issues across ${problemMods.size} mods — click mods highlighted in red for details.`, 'error');
+  } else {
+    setStatus('Ready');
+  }
+}
+
 // ===== Load Order Computation =====
 
 function computeLoadOrder() {
@@ -1274,6 +1312,7 @@ function renderColumns() {
   });
 
   updateDetailPanel();
+  updateDepStatus();
 }
 
 function createColumn(catId, name, color, globalOrder) {
@@ -1573,30 +1612,30 @@ function createModCard(mod, catColor, globalOrder) {
     }
   }
 
-  // Dependency order warnings — only show when load order is wrong
-  if (mod.active && globalOrder[mod.filename]) {
-    const myOrder = globalOrder[mod.filename];
+  // Dependency warnings — all problems highlighted in red
+  if (mod.active) {
     const modDeps = (mod.dependencies || []).concat(mod.references || []);
+    if (modDeps.length > 0) {
+      const problems = [];
 
-    // Orange: this mod loads BEFORE a dependency it needs (broken order)
-    for (const dep of modDeps) {
-      const depMod = mods.find((m) => m.filename.toLowerCase() === dep.toLowerCase());
-      if (depMod && depMod.active && globalOrder[depMod.filename]) {
-        if (myOrder < globalOrder[depMod.filename]) {
-          card.classList.add('dep-highlight-orange');
-          break;
+      for (const dep of modDeps) {
+        const depMod = findDepMod(dep);
+        if (!depMod) {
+          // Missing: dependency not installed at all
+          problems.push(`${dep} — not installed`);
+        } else if (!depMod.active) {
+          // Inactive: dependency exists but is disabled
+          problems.push(`${dep} — not active`);
+        } else if (globalOrder[mod.filename] && globalOrder[depMod.filename]
+            && globalOrder[mod.filename] < globalOrder[depMod.filename]) {
+          // Wrong order: this mod loads before its dependency
+          problems.push(`${dep} — loads after this mod`);
         }
       }
-    }
 
-    // Yellow: this mod should load before another mod that depends on it, but loads after
-    for (const other of mods) {
-      if (!other.active || other.filename === mod.filename) continue;
-      const otherDeps = (other.dependencies || []).concat(other.references || []);
-      const dependsOnMe = otherDeps.some((d) => d.toLowerCase() === mod.filename.toLowerCase());
-      if (dependsOnMe && globalOrder[other.filename] && globalOrder[other.filename] < myOrder) {
-        card.classList.add('dep-highlight-yellow');
-        break;
+      if (problems.length > 0) {
+        card.classList.add('dep-highlight-red');
+        card.title = problems.join('\n');
       }
     }
   }
@@ -2651,7 +2690,18 @@ function updateDetailPanel() {
   const depsEl = document.getElementById('detail-deps');
   if (selectedMod.dependencies && selectedMod.dependencies.length > 0) {
     depsRow.classList.remove('hidden');
-    depsEl.textContent = selectedMod.dependencies.join(', ');
+    depsEl.innerHTML = '';
+    for (const dep of selectedMod.dependencies) {
+      const installed = isDepInstalled(dep);
+      const span = document.createElement('span');
+      span.textContent = dep;
+      if (!installed) {
+        span.className = 'dep-missing';
+        span.title = 'Not installed!';
+      }
+      if (depsEl.childNodes.length > 0) depsEl.appendChild(document.createTextNode(', '));
+      depsEl.appendChild(span);
+    }
   } else {
     depsRow.classList.add('hidden');
   }
@@ -2660,17 +2710,41 @@ function updateDetailPanel() {
   const refsEl = document.getElementById('detail-refs');
   if (selectedMod.references && selectedMod.references.length > 0) {
     refsRow.classList.remove('hidden');
-    refsEl.textContent = selectedMod.references.join(', ');
+    refsEl.innerHTML = '';
+    for (const ref of selectedMod.references) {
+      const installed = isDepInstalled(ref);
+      const span = document.createElement('span');
+      span.textContent = ref;
+      if (!installed) {
+        span.className = 'dep-missing';
+        span.title = 'Not installed!';
+      }
+      if (refsEl.childNodes.length > 0) refsEl.appendChild(document.createTextNode(', '));
+      refsEl.appendChild(span);
+    }
   } else {
     refsRow.classList.add('hidden');
+  }
+
+  // Missing dependencies warning
+  const allDeps = (selectedMod.dependencies || []).concat(selectedMod.references || []);
+  const missingDeps = allDeps.filter((dep) => !isDepInstalled(dep));
+  const missingRow = document.getElementById('detail-missing-row');
+  const missingEl = document.getElementById('detail-missing');
+  if (missingDeps.length > 0) {
+    missingRow.classList.remove('hidden');
+    missingEl.textContent = missingDeps.join(', ');
+  } else {
+    missingRow.classList.add('hidden');
   }
 
   // "Needed by" — mods that depend on the selected mod
   const neededByRow = document.getElementById('detail-needed-by-row');
   const neededByEl = document.getElementById('detail-needed-by');
+  const selLower = selectedMod.filename.toLowerCase();
   const dependents = mods.filter((m) => {
     const allDeps = (m.dependencies || []).concat(m.references || []);
-    return allDeps.some((d) => d.toLowerCase() === selectedMod.filename.toLowerCase());
+    return allDeps.some((d) => selLower.includes(d.toLowerCase()));
   });
   if (dependents.length > 0) {
     neededByRow.classList.remove('hidden');
