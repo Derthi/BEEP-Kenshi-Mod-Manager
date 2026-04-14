@@ -12,29 +12,33 @@
   <!-- Setup Screen -->
   <div id="setup-screen" class="screen hidden">
     <div class="setup-container">
-      <h1>Kenshi Mod Sorter</h1>
-      <p>Configure your Kenshi paths to get started.</p>
+      <img src="Beep.jpg" class="setup-logo" alt="BEEP">
+      <h1>BEEP Kenshi Mod Manager</h1>
+      <p class="setup-tagline">Beep Enhances Every Playthrough</p>
+      <p>Works with <strong>Steam</strong> and <strong>GOG</strong> installations. Click Auto-Detect or browse to your Kenshi game folder manually.</p>
 
       <div class="auto-detect-section">
-        <button id="auto-detect-btn" class="btn btn-primary">Auto-Detect from Steam</button>
+        <button id="auto-detect-btn" class="btn btn-primary">Auto-Detect Kenshi</button>
         <span id="auto-detect-status" class="auto-detect-status"></span>
       </div>
 
       <div class="setup-field">
         <label>Kenshi Game Folder <span class="required">*</span></label>
         <div class="path-picker">
-          <input type="text" id="game-path-input" readonly placeholder="Select Kenshi game folder...">
+          <input type="text" id="game-path-input" readonly placeholder="Select Kenshi game folder (contains kenshi.exe)...">
           <button id="game-path-btn" class="btn">Browse</button>
         </div>
+        <small>The folder containing kenshi_x64.exe or kenshi.exe — NOT the Mods subfolder</small>
       </div>
 
       <div class="setup-field">
-        <label>Steam Workshop Folder <span class="optional">(optional)</span></label>
+        <label>Steam Workshop Folder <span class="optional">(Steam only, optional)</span></label>
         <div class="path-picker">
           <input type="text" id="steam-path-input" readonly placeholder="Select Steam workshop folder...">
           <button id="steam-path-btn" class="btn">Browse</button>
+          <button id="steam-path-clear-btn" class="btn">Clear</button>
         </div>
-        <small>Usually: steamapps/workshop/content/233860</small>
+        <small>GOG users: leave this blank. Your mods in the Kenshi/Mods folder are detected automatically.</small>
       </div>
 
       <button id="setup-continue-btn" class="btn btn-primary" disabled>Continue</button>
@@ -68,7 +72,7 @@
         <button id="reset-categories-btn" class="btn btn-danger-subtle">Reset Categories</button>
         <button id="add-category-btn" class="btn">+ Add Category</button>
         <button id="layout-toggle-btn" class="btn btn-icon" title="Toggle horizontal/vertical layout">&#8646;</button>
-        <button id="settings-btn" class="btn btn-icon" title="Settings">&#9881;</button>
+        <button id="settings-btn" class="btn" title="Change Kenshi folder paths">Folder Setup</button>
         <button id="generate-conflicts-btn" class="btn">Check Conflicts</button>
         <button id="map-btn" class="btn" title="View zone conflict map">Map</button>
         <button id="export-list-btn" class="btn" title="Export mod list to file">Export List</button>
@@ -453,6 +457,7 @@ Test.mod</pre>
             <span>Don't show this again</span>
           </label>
           <div class="tutorial-footer-buttons">
+            <button id="tutorial-folder-setup-btn" class="btn">Folder Setup</button>
             <button id="tutorial-show-btn" class="btn">Show Tutorial</button>
             <button id="tutorial-ok-btn" class="btn btn-primary">Got it!</button>
           </div>

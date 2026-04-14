@@ -122,7 +122,8 @@ async function autoDetect() {
     if (result && result.gamePath) {
       gamePathInput.value = result.gamePath;
       if (result.steamModsPath) steamPathInput.value = result.steamModsPath;
-      autoDetectStatus.textContent = 'Found Kenshi installation!';
+      const source = result.steamModsPath ? 'Steam' : 'GOG/standalone';
+      autoDetectStatus.textContent = `Found Kenshi installation! (${source})`;
       autoDetectStatus.className = 'auto-detect-status success';
       updateContinueBtn();
     } else {
@@ -146,6 +147,10 @@ gamePathBtn.addEventListener('click', async () => {
 steamPathBtn.addEventListener('click', async () => {
   const folder = await window.api.pickFolder();
   if (folder) steamPathInput.value = folder;
+});
+
+document.getElementById('steam-path-clear-btn').addEventListener('click', () => {
+  steamPathInput.value = '';
 });
 
 function updateContinueBtn() {
@@ -257,6 +262,11 @@ tutorialShowBtn.addEventListener('click', () => {
     persistConfig();
   }
   switchTab(tabTutorial);
+});
+
+document.getElementById('tutorial-folder-setup-btn').addEventListener('click', () => {
+  tutorialModal.classList.add('hidden');
+  settingsBtn.click();
 });
 
 // GitHub link
