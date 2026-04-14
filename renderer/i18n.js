@@ -5,10 +5,15 @@
 const SUPPORTED_LOCALES = {
   en: 'English',
   de: 'Deutsch',
-  ja: '日本語',
-  zh: '中文',
+  es: 'Español',
   fr: 'Français',
+  ja: '日本語',
+  ko: '한국어',
+  pl: 'Polski',
+  pt: 'Português',
   ru: 'Русский',
+  tr: 'Türkçe',
+  zh: '中文',
 };
 
 let currentLocale = 'en';
