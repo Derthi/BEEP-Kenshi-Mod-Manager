@@ -20,4 +20,5 @@ contextBridge.exposeInMainWorld('api', {
   checkForUpdate: () => ipcRenderer.invoke('check-for-update'),
   downloadUpdate: (url) => ipcRenderer.invoke('download-update', url),
   launchGame: (gamePath) => ipcRenderer.invoke('launch-game', gamePath),
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
 });

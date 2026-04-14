@@ -259,6 +259,11 @@ tutorialShowBtn.addEventListener('click', () => {
   switchTab(tabTutorial);
 });
 
+// GitHub link
+document.getElementById('github-btn').addEventListener('click', () => {
+  window.api.openExternal('https://github.com/Derthi/BEEP-Kenshi-Mod-Manager');
+});
+
 // Pin Uncategorized toggle
 const pinUncatBtn = document.getElementById('pin-uncat-btn');
 pinUncatBtn.addEventListener('click', () => {
@@ -592,51 +597,6 @@ importListBtn.addEventListener('click', async () => {
     persistConfig();
     renderColumns();
     setStatus(`Imported generic mod list (${filenames.length} mods reordered in Uncategorized).`, 'success');
-  }
-});
-
-// ===== Auto-Sort from Database =====
-
-const autoSortBtn = document.getElementById('auto-sort-btn');
-
-autoSortBtn.addEventListener('click', async () => {
-  setStatus('Loading mod database...');
-  const db = await window.api.loadModDatabase();
-  if (!db) {
-    setStatus('No mod database found (mod-database.json).', 'error');
-    return;
-  }
-
-  // db format: { "filename.mod": "Category Name", ... }
-  let sorted = 0;
-  let created = 0;
-
-  for (const mod of mods) {
-    if (mod.category !== UNCATEGORIZED) continue; // skip already-categorized
-    const catName = db[mod.filename];
-    if (!catName) continue;
-
-    // Find or create the category
-    let cat = categories.find((c) => c.name === catName);
-    if (!cat) {
-      cat = { id: generateId(), name: catName, color: randomColor(), order: categories.length };
-      categories.push(cat);
-      modOrders[cat.id] = [];
-      created++;
-    }
-
-    // Move mod to category (skip render)
-    moveMod(mod, cat.id, null, true);
-    sorted++;
-  }
-
-  if (sorted > 0) {
-    syncModCategories();
-    persistConfig();
-    renderColumns();
-    setStatus(`Auto-sorted ${sorted} mods into categories (${created} new categories created).`, 'success');
-  } else {
-    setStatus('No uncategorized mods matched the database.', 'error');
   }
 });
 

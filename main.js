@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const configStore = require('./lib/config-store');
 const modDiscovery = require('./lib/mod-discovery');
@@ -168,6 +168,10 @@ ipcMain.handle('download-update', async (_event, downloadUrl) => {
     }, 1000);
   }
   return result;
+});
+
+ipcMain.handle('open-external', (_event, url) => {
+  shell.openExternal(url);
 });
 
 app.whenReady().then(createWindow);
