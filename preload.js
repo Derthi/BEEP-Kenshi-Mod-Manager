@@ -20,6 +20,11 @@ contextBridge.exposeInMainWorld('api', {
   checkForUpdate: () => ipcRenderer.invoke('check-for-update'),
   downloadUpdate: (url) => ipcRenderer.invoke('download-update', url),
   launchGame: (gamePath) => ipcRenderer.invoke('launch-game', gamePath),
+  launchFcs: (gamePath) => ipcRenderer.invoke('launch-fcs', gamePath),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
   showInFolder: (filePath) => ipcRenderer.invoke('show-in-folder', filePath),
+  checkModLinks: (data) => ipcRenderer.invoke('check-mod-links', data),
+  createModLinks: (data) => ipcRenderer.invoke('create-mod-links', data),
+  removeModLinks: (data) => ipcRenderer.invoke('remove-mod-links', data),
+  relaunchAsAdmin: () => ipcRenderer.invoke('relaunch-as-admin'),
 });

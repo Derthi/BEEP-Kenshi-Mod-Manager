@@ -14,6 +14,7 @@ let uncategorizedPinned = false;
 let tutorialDismissed = false;
 let minimizedCategories = new Set();
 let justMovedMods = new Set();
+let linkedMods = new Set(); // steam mods with active symlinks in game folder
 
 const UNCATEGORIZED = 'uncategorized';
 
@@ -193,6 +194,22 @@ async function loadMods() {
   try {
     mods = await window.api.discoverMods(config);
     applyCategoriesToMods();
+
+    // Check symlink status for steam mods
+    const steamMods = mods.filter(m => m.source === 'steam');
+    if (steamMods.length > 0 && config.gamePath) {
+      try {
+        const linkResult = await window.api.checkModLinks({
+          gamePath: config.gamePath,
+          steamMods: steamMods.map(m => ({ filename: m.filename, filePath: m.filePath }))
+        });
+        linkedMods = new Set(linkResult.linkedMods);
+      } catch {
+        linkedMods.clear();
+      }
+    } else {
+      linkedMods.clear();
+    }
 
     // Preserve mods.cfg load order for uncategorized mods on first load
     if (!modOrders[UNCATEGORIZED] || modOrders[UNCATEGORIZED].length === 0) {
@@ -481,6 +498,75 @@ playBtn.addEventListener('click', async () => {
     setStatus(t('status.launched'), 'success');
   } else {
     setStatus(t('status.launchError', { error: launchResult.error }), 'error');
+  }
+});
+
+// FCS button — launch Forgotten Construction Set
+document.getElementById('fcs-btn').addEventListener('click', async () => {
+  setStatus(t('status.launchingFcs'));
+  const result = await window.api.launchFcs(config.gamePath);
+  if (result.success) {
+    setStatus(t('status.fcsLaunched'), 'success');
+  } else {
+    setStatus(t('status.fcsError', { error: result.error }), 'error');
+  }
+});
+
+// Link All — create symlinks for all Steam mods
+document.getElementById('link-all-btn').addEventListener('click', async () => {
+  const steamMods = mods.filter(m => m.source === 'steam' && !linkedMods.has(m.filename));
+  if (steamMods.length === 0) {
+    setStatus(t('status.allLinked'), 'success');
+    return;
+  }
+
+  setStatus(t('status.creatingLinks', { count: steamMods.length }));
+  try {
+    const result = await window.api.createModLinks({
+      gamePath: config.gamePath,
+      mods: steamMods.map(m => ({ filename: m.filename, filePath: m.filePath }))
+    });
+    if (result.needsAdmin) {
+      setStatus(t('status.linksNeedAdmin'), 'error');
+      const restart = confirm(t('confirm.adminRelaunch'));
+      if (restart) window.api.relaunchAsAdmin();
+      return;
+    }
+    for (const fn of result.created) linkedMods.add(fn);
+    renderColumns();
+    if (result.errors.length > 0) {
+      setStatus(t('status.linksPartial', { count: result.created.length, errors: result.errors.length }), 'error');
+    } else {
+      setStatus(t('status.linksCreated', { count: result.created.length }), 'success');
+    }
+  } catch (err) {
+    setStatus(t('status.linkError', { error: err.message }), 'error');
+  }
+});
+
+// Unlink All — remove all symlinks from game Mods folder
+document.getElementById('unlink-all-btn').addEventListener('click', async () => {
+  const linkedSteamMods = mods.filter(m => m.source === 'steam' && linkedMods.has(m.filename));
+  if (linkedSteamMods.length === 0) {
+    setStatus(t('status.noLinks'), 'success');
+    return;
+  }
+
+  setStatus(t('status.removingLinks', { count: linkedSteamMods.length }));
+  try {
+    const result = await window.api.removeModLinks({
+      gamePath: config.gamePath,
+      mods: linkedSteamMods.map(m => ({ filename: m.filename, filePath: m.filePath }))
+    });
+    for (const fn of result.removed) linkedMods.delete(fn);
+    renderColumns();
+    if (result.errors.length > 0) {
+      setStatus(t('status.unlinksPartial', { count: result.removed.length, errors: result.errors.length }), 'error');
+    } else {
+      setStatus(t('status.linksRemoved', { count: result.removed.length }), 'success');
+    }
+  } catch (err) {
+    setStatus(t('status.linkError', { error: err.message }), 'error');
   }
 });
 
@@ -1606,16 +1692,27 @@ function createModCard(mod, catColor, globalOrder) {
   badge.textContent = mod.source;
   src.appendChild(badge);
 
+  // Link badge for symlinked Steam mods
+  let linkBadge = null;
+  if (mod.source === 'steam' && linkedMods.has(mod.filename)) {
+    linkBadge = document.createElement('span');
+    linkBadge.className = 'link-badge';
+    linkBadge.textContent = '\uD83D\uDD17';
+    linkBadge.title = t('symlinks.linked');
+  }
+
   // Conflict indicator + highlight
+  const cardItems = [handle, cbWrap, name];
   if (conflictData && conflictData.modConflicts[mod.filename]) {
     const count = conflictData.modConflicts[mod.filename].length;
     const badge = document.createElement('span');
     badge.className = 'conflict-count-badge';
     badge.textContent = count;
-    card.append(handle, cbWrap, name, badge, src);
-  } else {
-    card.append(handle, cbWrap, name, src);
+    cardItems.push(badge);
   }
+  if (linkBadge) cardItems.push(linkBadge);
+  cardItems.push(src);
+  card.append(...cardItems);
 
   // Highlight mods this selection conflicts with
   if (selectedMod && conflictData && selectedMod.filePath !== mod.filePath) {
@@ -1877,6 +1974,114 @@ document.getElementById('mod-context-open-folder').addEventListener('click', () 
   hideContextMenu();
 });
 
+document.getElementById('mod-context-create-links').addEventListener('click', async () => {
+  const bulkMods = selectedMods.size > 1
+    ? mods.filter(m => selectedMods.has(m.filename))
+    : (modContextTarget ? [modContextTarget] : []);
+  const steamMods = bulkMods.filter(m => m.source === 'steam' && !linkedMods.has(m.filename));
+  hideContextMenu();
+  if (steamMods.length === 0) return;
+
+  setStatus(t('status.creatingLinks', { count: steamMods.length }));
+  try {
+    const result = await window.api.createModLinks({
+      gamePath: config.gamePath,
+      mods: steamMods.map(m => ({ filename: m.filename, filePath: m.filePath }))
+    });
+    if (result.needsAdmin) {
+      setStatus(t('status.linksNeedAdmin'), 'error');
+      const restart = confirm(t('confirm.adminRelaunch'));
+      if (restart) window.api.relaunchAsAdmin();
+      return;
+    }
+    for (const fn of result.created) linkedMods.add(fn);
+    renderColumns();
+    if (result.errors.length > 0) {
+      setStatus(t('status.linksPartial', { count: result.created.length, errors: result.errors.length }), 'error');
+    } else {
+      setStatus(t('status.linksCreated', { count: result.created.length }), 'success');
+    }
+  } catch (err) {
+    setStatus(t('status.linkError', { error: err.message }), 'error');
+  }
+});
+
+document.getElementById('mod-context-remove-links').addEventListener('click', async () => {
+  const bulkMods = selectedMods.size > 1
+    ? mods.filter(m => selectedMods.has(m.filename))
+    : (modContextTarget ? [modContextTarget] : []);
+  const steamMods = bulkMods.filter(m => m.source === 'steam' && linkedMods.has(m.filename));
+  hideContextMenu();
+  if (steamMods.length === 0) return;
+
+  setStatus(t('status.removingLinks', { count: steamMods.length }));
+  try {
+    const result = await window.api.removeModLinks({
+      gamePath: config.gamePath,
+      mods: steamMods.map(m => ({ filename: m.filename, filePath: m.filePath }))
+    });
+    for (const fn of result.removed) linkedMods.delete(fn);
+    renderColumns();
+    if (result.errors.length > 0) {
+      setStatus(t('status.unlinksPartial', { count: result.removed.length, errors: result.errors.length }), 'error');
+    } else {
+      setStatus(t('status.linksRemoved', { count: result.removed.length }), 'success');
+    }
+  } catch (err) {
+    setStatus(t('status.linkError', { error: err.message }), 'error');
+  }
+});
+
+// Send to # — reposition mod to a global load order position
+const sendToEl = document.getElementById('mod-context-send-to');
+sendToEl.addEventListener('click', (e) => e.stopPropagation());
+sendToEl.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const input = e.target;
+  const pos = parseInt(input.value, 10);
+  if (!modContextTarget || isNaN(pos)) return;
+
+  const mod = modContextTarget;
+
+  // Build global ordered list of active mods (same order as renderColumns)
+  const sorted = [...categories].sort((a, b) => a.order - b.order);
+  const allCats = [...sorted, { id: UNCATEGORIZED, name: 'Uncategorized', color: '#555' }];
+  const globalList = []; // { filename, category }
+  for (const cat of allCats) {
+    for (const m of getModsForCategory(cat.id)) {
+      if (m.active) globalList.push({ filename: m.filename, category: cat.id });
+    }
+  }
+
+  const maxPos = globalList.length;
+  const targetIdx = Math.max(1, Math.min(pos, maxPos)) - 1; // 0-indexed
+
+  // Find what category the target position belongs to
+  const targetEntry = globalList[targetIdx];
+  const targetCatId = targetEntry.category;
+
+  // Insert after the mod at targetIdx (so the moved mod lands at that number).
+  // moveMod inserts *before* a filename, so we pass the next mod in the same category.
+  const globalListWithoutMod = globalList.filter(e => e.filename !== mod.filename);
+  const adjustedIdx = globalListWithoutMod.findIndex(e => e.filename === targetEntry.filename);
+  // Find the next mod in the same category after the target position
+  let afterFilename = null;
+  for (let i = adjustedIdx + 1; i < globalListWithoutMod.length; i++) {
+    if (globalListWithoutMod[i].category === targetCatId) {
+      afterFilename = globalListWithoutMod[i].filename;
+      break;
+    }
+  }
+
+  // Move the mod — afterFilename=null means append to end of category
+  moveMod(mod, targetCatId, afterFilename);
+  syncModCategories();
+  persistConfig();
+  renderColumns();
+  hideContextMenu();
+});
+
 function showModContextMenu(x, y, mod) {
   hideContextMenu();
   modContextTarget = mod;
@@ -1885,6 +2090,47 @@ function showModContextMenu(x, y, mod) {
   const bulkMods = selectedMods.size > 1
     ? mods.filter((m) => selectedMods.has(m.filename))
     : [mod];
+
+  // Show/hide symlink options based on selection
+  const linkSep = document.getElementById('mod-context-link-separator');
+  const createLinksItem = document.getElementById('mod-context-create-links');
+  const removeLinksItem = document.getElementById('mod-context-remove-links');
+  const steamInSelection = bulkMods.filter(m => m.source === 'steam');
+  const unlinkedSteam = steamInSelection.filter(m => !linkedMods.has(m.filename));
+  const linkedSteam = steamInSelection.filter(m => linkedMods.has(m.filename));
+
+  if (steamInSelection.length > 0) {
+    linkSep.classList.remove('hidden');
+    if (unlinkedSteam.length > 0) {
+      createLinksItem.classList.remove('hidden');
+      createLinksItem.textContent = unlinkedSteam.length > 1
+        ? t('context.createLinksCount', { count: unlinkedSteam.length })
+        : t('context.createLinks');
+    } else {
+      createLinksItem.classList.add('hidden');
+    }
+    if (linkedSteam.length > 0) {
+      removeLinksItem.classList.remove('hidden');
+      removeLinksItem.textContent = linkedSteam.length > 1
+        ? t('context.removeLinksCount', { count: linkedSteam.length })
+        : t('context.removeLinks');
+    } else {
+      removeLinksItem.classList.add('hidden');
+    }
+  } else {
+    linkSep.classList.add('hidden');
+    createLinksItem.classList.add('hidden');
+    removeLinksItem.classList.add('hidden');
+  }
+
+  // Send to # — show global load order position range
+  const sendToInput = document.getElementById('mod-context-send-to');
+  const sendToRange = document.getElementById('mod-context-send-range');
+  const totalActive = mods.filter(m => m.active).length;
+  sendToInput.value = '';
+  sendToInput.max = totalActive;
+  sendToInput.placeholder = '1';
+  sendToRange.textContent = `(1–${totalActive})`;
 
   // Build category list
   modContextCategories.innerHTML = '';

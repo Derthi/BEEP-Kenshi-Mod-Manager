@@ -80,25 +80,32 @@
           <span class="theme-label" data-i18n="toolbar.themeKenshi">Kenshi</span>
         </div>
       </div>
-      <div class="toolbar-center">
-        <button id="ai-export-btn" class="btn" data-i18n="toolbar.aiExport">AI Sort Export</button>
-        <button id="ai-import-btn" class="btn" data-i18n="toolbar.aiImport">AI Sort Import</button>
-      </div>
       <div class="toolbar-right">
-        <button id="pin-uncat-btn" class="btn" data-i18n="toolbar.pinUncat" data-i18n-title="toolbar.pinUncat">Pin Uncategorized</button>
-        <button id="github-btn" class="btn" data-i18n="toolbar.github" data-i18n-title="toolbar.githubTooltip">GitHub</button>
-        <button id="reset-categories-btn" class="btn btn-danger-subtle" data-i18n="toolbar.resetCategories">Reset Categories</button>
-        <button id="add-category-btn" class="btn" data-i18n="toolbar.addCategory">+ Add Category</button>
-        <button id="layout-toggle-btn" class="btn btn-icon" data-i18n-title="toolbar.layoutTooltip" title="Toggle horizontal/vertical layout">&#8646;</button>
-        <button id="settings-btn" class="btn" data-i18n="toolbar.folderSetup" data-i18n-title="toolbar.folderSetupTooltip" title="Change Kenshi folder paths">Folder Setup</button>
-        <button id="generate-conflicts-btn" class="btn" data-i18n="toolbar.checkConflicts">Check Conflicts</button>
-        <button id="map-btn" class="btn" data-i18n="toolbar.map" data-i18n-title="toolbar.mapTooltip" title="View zone conflict map">Map</button>
-        <button id="export-list-btn" class="btn" data-i18n="toolbar.exportList" data-i18n-title="toolbar.exportListTooltip" title="Export mod list to file">Export List</button>
-        <button id="import-list-btn" class="btn" data-i18n="toolbar.importList" data-i18n-title="toolbar.importListTooltip" title="Import mod list from file">Import List</button>
-        <button id="refresh-btn" class="btn" data-i18n="toolbar.refresh">Refresh</button>
-        <button id="save-btn" class="btn btn-primary" data-i18n="toolbar.save">Save Load Order</button>
-        <button id="play-btn" class="btn btn-play">&#9654; <span data-i18n="toolbar.play">Play</span></button>
-        <button id="update-btn" class="btn btn-icon" data-i18n-title="toolbar.updateTooltip" title="Check for updates">&#8635;</button>
+        <div class="btn-group">
+          <button id="ai-export-btn" class="btn" data-i18n="toolbar.aiExport">AI Sort Export</button>
+          <button id="ai-import-btn" class="btn" data-i18n="toolbar.aiImport">AI Sort Import</button>
+        </div>
+        <div class="btn-group">
+          <button id="generate-conflicts-btn" class="btn" data-i18n="toolbar.checkConflicts">Check Conflicts</button>
+          <button id="map-btn" class="btn" data-i18n="toolbar.map" data-i18n-title="toolbar.mapTooltip" title="View zone conflict map">Map</button>
+        </div>
+        <div class="btn-group">
+          <button id="export-list-btn" class="btn" data-i18n="toolbar.exportList" data-i18n-title="toolbar.exportListTooltip" title="Export mod list to file">Export List</button>
+          <button id="import-list-btn" class="btn" data-i18n="toolbar.importList" data-i18n-title="toolbar.importListTooltip" title="Import mod list from file">Import List</button>
+        </div>
+        <div class="btn-group">
+          <button id="fcs-btn" class="btn" data-i18n="toolbar.fcs" data-i18n-title="toolbar.fcsTooltip" title="Launch Forgotten Construction Set">FCS</button>
+          <button id="link-all-btn" class="btn" data-i18n="toolbar.linkAll" data-i18n-title="toolbar.linkAllTooltip" title="Create symlinks for all Steam mods in game folder">LinkMods</button>
+          <button id="unlink-all-btn" class="btn" data-i18n="toolbar.unlinkAll" data-i18n-title="toolbar.unlinkAllTooltip" title="Remove all symlinks from game folder">UnlinkMods</button>
+        </div>
+        <div class="btn-group">
+          <button id="settings-btn" class="btn" data-i18n="toolbar.folderSetup" data-i18n-title="toolbar.folderSetupTooltip" title="Change Kenshi folder paths">Folder Setup</button>
+          <button id="refresh-btn" class="btn" data-i18n="toolbar.refresh">Refresh</button>
+          <button id="save-btn" class="btn btn-primary" data-i18n="toolbar.save">Save Load Order</button>
+          <button id="play-btn" class="btn btn-play">&#9654; <span data-i18n="toolbar.play">Play</span></button>
+          <button id="github-btn" class="btn btn-icon" data-i18n-title="toolbar.githubTooltip" title="GitHub">&#9733;</button>
+          <button id="update-btn" class="btn btn-icon" data-i18n-title="toolbar.updateTooltip" title="Check for updates">&#8635;</button>
+        </div>
       </div>
     </div>
 
@@ -300,6 +307,12 @@ Test.mod</pre>
       <!-- Columns Wrapper (search + categories) -->
       <div class="columns-wrapper">
         <div class="global-search-bar">
+          <div class="search-bar-controls">
+            <button id="add-category-btn" class="btn btn-subbar" data-i18n="toolbar.addCategory">+ Add Category</button>
+            <button id="reset-categories-btn" class="btn btn-subbar btn-danger-subtle" data-i18n="toolbar.resetCategories">Reset Categories</button>
+            <button id="pin-uncat-btn" class="btn btn-subbar" data-i18n="toolbar.pinUncat" data-i18n-title="toolbar.pinUncat">Pin Uncategorized</button>
+            <button id="layout-toggle-btn" class="btn btn-subbar btn-icon" data-i18n-title="toolbar.layoutTooltip" title="Toggle horizontal/vertical layout">&#8646;</button>
+          </div>
           <input type="text" id="global-search-input" class="global-search-input" data-i18n-placeholder="search.placeholder" placeholder="Search mods...">
         </div>
         <div id="category-columns" class="category-columns"></div>
@@ -321,6 +334,15 @@ Test.mod</pre>
   <!-- Mod Context Menu (hidden) -->
   <div id="mod-context-menu" class="context-menu hidden">
     <div id="mod-context-open-folder" class="context-item" data-i18n="context.openFolder">Open Mod Folder</div>
+    <div id="mod-context-link-separator" class="context-separator hidden"></div>
+    <div id="mod-context-create-links" class="context-item hidden" data-i18n="context.createLinks">Link to Game Folder</div>
+    <div id="mod-context-remove-links" class="context-item hidden" data-i18n="context.removeLinks">Unlink from Game Folder</div>
+    <div class="context-separator"></div>
+    <div class="context-move-to-row">
+      <label class="context-label" data-i18n="context.sendTo">Send to #</label>
+      <input type="number" id="mod-context-send-to" class="context-send-input" min="1" placeholder="1">
+      <span id="mod-context-send-range" class="context-send-range"></span>
+    </div>
     <div class="context-separator"></div>
     <div class="context-label" data-i18n="category.moveTo">Move to category:</div>
     <div id="mod-context-categories"></div>

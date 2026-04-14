@@ -162,6 +162,30 @@ ipcMain.handle('launch-game', (_event, gamePath) => {
   return { success: true };
 });
 
+// Launch FCS
+ipcMain.handle('launch-fcs', (_event, gamePath) => {
+  const fs = require('fs');
+  const { spawn } = require('child_process');
+
+  const fcsPath = path.join(gamePath, 'forgotten construction set.exe');
+  if (!fs.existsSync(fcsPath)) {
+    return { success: false, error: 'Could not find "forgotten construction set.exe" in ' + gamePath };
+  }
+
+  if (process.platform === 'linux') {
+    const { exec } = require('child_process');
+    // Try Steam launch first (FCS app ID 285220), fall back to Wine
+    exec(`xdg-open "steam://rungameid/285220"`, { timeout: 5000 }, (err) => {
+      if (err) {
+        spawn('wine', [fcsPath], { detached: true, cwd: gamePath, stdio: 'ignore' }).unref();
+      }
+    });
+  } else {
+    spawn(fcsPath, [], { detached: true, cwd: gamePath, stdio: 'ignore' }).unref();
+  }
+  return { success: true };
+});
+
 // Conflict detection
 ipcMain.handle('generate-conflicts', (_event, activeMods, gamePath) => {
   return conflictDetector.detectConflicts(activeMods, gamePath);
@@ -191,6 +215,107 @@ ipcMain.handle('open-external', (_event, url) => {
 
 ipcMain.handle('show-in-folder', (_event, filePath) => {
   shell.showItemInFolder(filePath);
+});
+
+// Relaunch the app with admin privileges
+ipcMain.handle('relaunch-as-admin', () => {
+  const { exec } = require('child_process');
+  const exePath = app.isPackaged ? app.getPath('exe') : process.argv[0];
+  const args = app.isPackaged ? [] : process.argv.slice(1);
+  exec(`powershell -Command "Start-Process '${exePath}' -ArgumentList '${args.join(' ')}' -Verb RunAs"`, (err) => {
+    if (!err) app.quit();
+  });
+});
+
+// Symlink management for Steam mods → game Mods folder
+// Uses mod filename (without .mod extension) as the link folder name,
+// matching how the old Kenshi Mod Manager worked and how FCS expects it.
+
+function getModLinkName(modFilename) {
+  // "TameBeasties.mod" → "TameBeasties"
+  return path.parse(modFilename).name;
+}
+
+ipcMain.handle('check-mod-links', (_event, { gamePath, steamMods }) => {
+  const fs = require('fs');
+  const linkedMods = [];
+  for (const mod of steamMods) {
+    const linkPath = path.join(gamePath, 'Mods', getModLinkName(mod.filename));
+    try {
+      if (fs.lstatSync(linkPath).isSymbolicLink()) {
+        linkedMods.push(mod.filename);
+      }
+    } catch {
+      // Path doesn't exist — not linked
+    }
+  }
+  return { linkedMods };
+});
+
+ipcMain.handle('create-mod-links', (_event, { gamePath, mods }) => {
+  const fs = require('fs');
+  const modsDir = path.join(gamePath, 'Mods');
+  if (!fs.existsSync(modsDir)) fs.mkdirSync(modsDir, { recursive: true });
+
+  const created = [];
+  const skipped = [];
+  const errors = [];
+
+  for (const mod of mods) {
+    const workshopDir = path.dirname(mod.filePath);
+    const linkName = getModLinkName(mod.filename);
+    const linkPath = path.join(modsDir, linkName);
+    try {
+      if (fs.existsSync(linkPath)) {
+        skipped.push(mod.filename);
+        continue;
+      }
+      // Use 'dir' symlinks (same as old Kenshi Mod Manager) — works with FCS.
+      // On Windows this requires admin privileges.
+      // On Linux, regular symlinks work without special privileges.
+      fs.symlinkSync(workshopDir, linkPath, 'dir');
+      created.push(mod.filename);
+    } catch (err) {
+      if (err.code === 'EPERM' && process.platform === 'win32') {
+        return { created, skipped, errors, needsAdmin: true };
+      }
+      errors.push({ filename: mod.filename, error: err.message });
+    }
+  }
+  return { created, skipped, errors, needsAdmin: false };
+});
+
+ipcMain.handle('remove-mod-links', (_event, { gamePath, mods }) => {
+  const fs = require('fs');
+  const modsDir = path.join(gamePath, 'Mods');
+  const removed = [];
+  const skipped = [];
+  const errors = [];
+
+  for (const mod of mods) {
+    const linkName = getModLinkName(mod.filename);
+    const linkPath = path.join(modsDir, linkName);
+    try {
+      const stat = fs.lstatSync(linkPath);
+      if (!stat.isSymbolicLink()) {
+        skipped.push(mod.filename);
+        continue;
+      }
+      if (process.platform === 'win32') {
+        fs.rmSync(linkPath);
+      } else {
+        fs.unlinkSync(linkPath);
+      }
+      removed.push(mod.filename);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        skipped.push(mod.filename);
+      } else {
+        errors.push({ filename: mod.filename, error: err.message });
+      }
+    }
+  }
+  return { removed, skipped, errors };
 });
 
 app.whenReady().then(createWindow);
