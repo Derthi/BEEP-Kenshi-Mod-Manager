@@ -1,6 +1,6 @@
 {
   "name": "kenshi-mod-manager",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "A Kenshi mod load order manager with category sorting, conflict detection, AI-assisted sorting, and mod packs",
   "main": "main.js",
   "license": "MIT",
