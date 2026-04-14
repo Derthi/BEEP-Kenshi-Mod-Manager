@@ -1352,6 +1352,12 @@ body.kenshi-theme .drag-ghost-more {
   color: #bbb;
 }
 
+.conflict-prop-desc {
+  color: #666;
+  font-size: 9px;
+  font-style: italic;
+}
+
 .conflict-prop-arrow {
   font-size: 7px;
   color: #555;

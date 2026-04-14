@@ -163,8 +163,8 @@ ipcMain.handle('launch-game', (_event, gamePath) => {
 });
 
 // Conflict detection
-ipcMain.handle('generate-conflicts', (_event, activeMods) => {
-  return conflictDetector.detectConflicts(activeMods);
+ipcMain.handle('generate-conflicts', (_event, activeMods, gamePath) => {
+  return conflictDetector.detectConflicts(activeMods, gamePath);
 });
 
 // Updater

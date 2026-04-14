@@ -504,7 +504,7 @@ async function runConflictCheck() {
   generateConflictsBtn.disabled = true;
 
   try {
-    conflictData = await window.api.generateConflicts(activeMods);
+    conflictData = await window.api.generateConflicts(activeMods, config.gamePath);
     const conflictModCount = Object.keys(conflictData.modConflicts).length;
     if (conflictData.totalConflicts > 0) {
       setStatus(t('status.conflictsFound', { conflicts: conflictData.totalConflicts, mods: conflictModCount }), 'error');
@@ -3017,9 +3017,16 @@ function renderPropertyList(container, conflicts) {
 
         const keySpan = document.createElement('span');
         keySpan.textContent = c.key;
+        if (c.keyDesc) {
+          keySpan.title = c.keyDesc;
+          const desc = document.createElement('span');
+          desc.className = 'conflict-prop-desc';
+          desc.textContent = ` — ${c.keyDesc}`;
+          keySpan.appendChild(desc);
+        }
         if (isZone) {
           keySpan.className = 'conflict-prop-zone';
-          keySpan.title = 'Click to view on map';
+          keySpan.title = t('zoneMap.clickToView');
           keySpan.addEventListener('click', (e) => { e.stopPropagation(); showZoneOnMap(c.key); });
         }
 
