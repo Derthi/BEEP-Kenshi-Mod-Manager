@@ -133,17 +133,32 @@ ipcMain.handle('write-file', (_event, filePath, content) => {
 ipcMain.handle('launch-game', (_event, gamePath) => {
   const fs = require('fs');
   const { spawn } = require('child_process');
-  const exePath = path.join(gamePath, 'kenshi_x64.exe');
-  if (!fs.existsSync(exePath)) {
-    // Try 32-bit fallback
-    const exe32 = path.join(gamePath, 'kenshi_GOG_x64.exe');
-    const exe32b = path.join(gamePath, 'kenshi.exe');
-    const actual = fs.existsSync(exe32) ? exe32 : fs.existsSync(exe32b) ? exe32b : null;
-    if (!actual) return { success: false, error: 'Could not find Kenshi executable in ' + gamePath };
-    spawn(actual, [], { detached: true, cwd: gamePath, stdio: 'ignore' }).unref();
-    return { success: true };
+
+  // Find Kenshi executable
+  const candidates = ['kenshi_x64.exe', 'kenshi_GOG_x64.exe', 'kenshi.exe'];
+  let exePath = null;
+  for (const name of candidates) {
+    const p = path.join(gamePath, name);
+    if (fs.existsSync(p)) { exePath = p; break; }
   }
-  spawn(exePath, [], { detached: true, cwd: gamePath, stdio: 'ignore' }).unref();
+  if (!exePath) {
+    return { success: false, error: 'Could not find Kenshi executable in ' + gamePath };
+  }
+
+  if (process.platform === 'linux') {
+    // On Linux, launch via Steam (Proton) or directly with Wine
+    const steamRunUrl = `steam://rungameid/233860`;
+    const { exec } = require('child_process');
+    // Try Steam first, fall back to xdg-open
+    exec(`xdg-open "${steamRunUrl}"`, { timeout: 5000 }, (err) => {
+      if (err) {
+        // Fallback: try running the exe directly (may work under Wine/Proton)
+        spawn('wine', [exePath], { detached: true, cwd: gamePath, stdio: 'ignore' }).unref();
+      }
+    });
+  } else {
+    spawn(exePath, [], { detached: true, cwd: gamePath, stdio: 'ignore' }).unref();
+  }
   return { success: true };
 });
 

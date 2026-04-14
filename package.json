@@ -10,7 +10,8 @@
   },
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win dir && node -e \"require('child_process').execSync(require('path').join('node_modules','rcedit','bin','rcedit-x64.exe')+' \\\"dist/win-unpacked/BEEP Kenshi Mod Manager.exe\\\" --set-icon icon.ico')\""
+    "build": "electron-builder --win dir && node -e \"require('child_process').execSync(require('path').join('node_modules','rcedit','bin','rcedit-x64.exe')+' \\\"dist/win-unpacked/BEEP Kenshi Mod Manager.exe\\\" --set-icon icon.ico')\"",
+    "build:linux": "electron-builder --linux dir"
   },
   "build": {
     "appId": "com.kenshi.mod-sorter",
@@ -19,6 +20,11 @@
       "target": "dir",
       "icon": "icon.ico",
       "signAndEditExecutable": false
+    },
+    "linux": {
+      "target": "dir",
+      "icon": "icon.png",
+      "category": "Game"
     },
     "files": [
       "main.js",
