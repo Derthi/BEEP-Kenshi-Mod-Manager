@@ -245,5 +245,64 @@
 
   "search.placeholder": "Rechercher des mods...",
 
-  "language": "Langue"
+  "language": "Langue",
+
+  "tutorial.overview.organize": "<strong>Organiser les mods</strong> — glissez-déposez les mods entre les colonnes de catégories pour trier votre ordre de chargement",
+  "tutorial.overview.conflicts": "<strong>Détection approfondie des conflits</strong> — détecte les conflits de données, de ressources et de niveaux avec les valeurs réelles affichées en ligne",
+  "tutorial.overview.conflictMap": "<strong>Carte des conflits</strong> — carte interactive du monde de Kenshi montrant les zones de conflits extérieures et intérieures",
+  "tutorial.overview.aiSort": "<strong>Tri par IA</strong> — exportez votre liste de mods, laissez l'IA suggérer un ordre, puis importez-le",
+  "tutorial.overview.pinUncat": "<strong>Épingler Non classés</strong> — épinglez les mods non classés pour un tri facile par glisser-déposer",
+  "tutorial.overview.themes": "<strong>Thème Kenshi</strong> — basculez entre les thèmes Sombre et Kenshi dans la barre d'outils",
+  "tutorial.overview.packs": "<strong>Packs de mods</strong> — sauvegardez et chargez des configurations complètes de mods",
+
+  "tutorial.sorting.1": "<strong>Glissez-déposez</strong> les mods entre les colonnes de catégories pour organiser votre ordre de chargement.",
+  "tutorial.sorting.2": "<strong>Sélection multiple</strong> avec Ctrl+clic (basculer) ou Maj+clic (plage), puis clic droit pour tous les déplacer vers une catégorie.",
+  "tutorial.sorting.3": "<strong>Déplacement groupé</strong> — sélectionnez plusieurs mods et faites-les glisser ensemble.",
+  "tutorial.sorting.4": "<strong>Épinglez Non classés</strong> pour afficher un panneau latéral redimensionnable facilitant le tri.",
+  "tutorial.sorting.5": "<strong>Glissez les en-têtes de colonnes</strong> pour réorganiser des catégories entières.",
+
+  "tutorial.categories.1": "<strong>Ajoutez des catégories</strong> avec le bouton « + Ajouter une catégorie » dans la barre d'outils.",
+  "tutorial.categories.2": "<strong>Clic droit sur l'en-tête d'une catégorie</strong> pour la renommer, changer sa couleur ou la supprimer.",
+  "tutorial.categories.3": "<strong>Glissez les en-têtes de catégories</strong> pour les réordonner. L'ordre de chargement suit l'ordre des catégories.",
+  "tutorial.categories.4": "<strong>Réinitialiser les catégories</strong> restaure le jeu de catégories par défaut.",
+
+  "tutorial.packs.1": "Rendez-vous dans l'onglet <strong>Packs</strong> pour sauvegarder et charger des configurations complètes de mods.",
+  "tutorial.packs.2": "<strong>Sauvegarder l'actuel</strong> enregistre l'intégralité de votre configuration — catégories, ordre des mods et état actif/inactif.",
+  "tutorial.packs.3": "Chargez un pack pour restaurer instantanément une configuration précédente.",
+  "tutorial.packs.4": "Idéal pour alterner entre différentes parties ou sauvegarder avant un AI Sort.",
+
+  "tutorial.importExport.1": "<strong>Exporter la liste</strong> — enregistre votre configuration complète (catégories, ordre de chargement, état actif/inactif) dans un fichier texte. Partagez-le ou conservez-le en sauvegarde.",
+  "tutorial.importExport.2": "<strong>Importer la liste</strong> — charge une liste de mods BEEP précédemment exportée, en restaurant toutes les catégories et l'ordre.",
+  "tutorial.importExport.3": "<strong>Import générique</strong> — prend aussi en charge les listes de noms de fichiers .mod (un par ligne). Les mods non classés sont réordonnés selon la liste.",
+
+  "tutorial.conflicts.1": "<strong>Vérifier les conflits</strong> analyse en profondeur les fichiers .mod, les données de niveaux et les fichiers de ressources pour trouver les vrais conflits.",
+  "tutorial.conflicts.2": "<strong>Vert</strong> = ce mod l'emporte, <strong>Rouge</strong> = écrasé, <strong>Jaune</strong> = tous deux écrasés par un troisième mod.",
+  "tutorial.conflicts.3": "Développez une propriété pour voir les <strong>valeurs réelles</strong> définies par chaque mod. Les valeurs identiques sont masquées.",
+  "tutorial.conflicts.4": "Cliquez sur <strong>Carte</strong> pour visualiser les conflits sur la carte du monde de Kenshi avec zoom, défilement et bascule extérieur/intérieur.",
+
+  "tutorial.other.1": "<strong>Thèmes</strong> — basculez entre les thèmes Sombre et Kenshi dans la barre d'outils.",
+  "tutorial.other.2": "<strong>Workshop</strong> — parcourez le Steam Workshop directement depuis l'application.",
+  "tutorial.other.3": "<strong>Guide de modding</strong> — guide d'ordre de chargement Kenshi issu de Steam.",
+  "tutorial.other.4": "<strong>Mise à jour automatique</strong> — vérifie les nouvelles versions au lancement.",
+
+  "tutorial.aiSort.desc": "AI Sort utilise un chatbot IA (Claude ou ChatGPT) pour trier automatiquement vos mods dans le bon ordre de chargement Kenshi.",
+  "tutorial.aiSort.1": "<strong>Sauvegardez d'abord un pack de mods</strong> dans l'onglet Packs pour pouvoir revenir en arrière.",
+  "tutorial.aiSort.2": "Cliquez sur <strong>AI Sort Export</strong> — récupère les descriptions Steam et génère un fichier texte.",
+  "tutorial.aiSort.3": "Collez le fichier dans un chatbot IA et envoyez-le.",
+  "tutorial.aiSort.4": "Copiez la réponse de l'IA.",
+  "tutorial.aiSort.5": "Cliquez sur <strong>AI Sort Import</strong>, collez la réponse et cliquez sur Appliquer l'ordre.",
+  "tutorial.aiSort.privacy": "Aucune donnée n'est envoyée automatiquement — vous servez d'intermédiaire. L'application contacte uniquement l'API publique de Steam pour les descriptions.",
+
+  "tutorial.aiExport.1": "<strong>Non classés uniquement</strong> — mods non triés avec descriptions complètes (recommandé)",
+  "tutorial.aiExport.2": "<strong>Non classés compact</strong> — tags + descriptions tronquées (50+ mods)",
+  "tutorial.aiExport.3": "<strong>Tous les mods compact</strong> — tout avec des descriptions courtes (500+ mods)",
+  "tutorial.aiExport.4": "<strong>Tous les mods complet</strong> — descriptions intégrales (le plus précis, le plus volumineux)",
+  "tutorial.aiExport.5": "<strong>Découpage en lots</strong> — plusieurs fichiers d'environ 50 mods chacun",
+  "tutorial.aiExport.formatNote": "Les commentaires supplémentaires ne posent pas de problème — le parseur ignore tout ce qui n'est pas un en-tête [Catégorie] ou un nom de fichier .mod.",
+
+  "aiExport.uncatDesc": "Récupère les descriptions uniquement pour les mods non classés. Les mods déjà triés sont listés par nom de fichier seulement. Fichier bien plus léger, traitement IA plus rapide, moindre coût.",
+  "aiExport.uncatCompactDesc": "Mods non triés uniquement, avec tags + descriptions tronquées. Les mods déjà triés sont listés par nom de fichier. Meilleur compromis entre précision et taille.",
+  "aiExport.compactDesc": "Tous les mods avec les tags Steam + les 200 premiers caractères. Permet d'inclure plus de 500 mods en un seul prompt. À utiliser pour un tri complet sans dépasser les limites de tokens.",
+  "aiExport.allDesc": "Récupère les descriptions complètes de chaque mod actif. Le plus précis, mais produit un fichier très volumineux. Peut dépasser les limites de tokens de l'IA au-delà de 100 mods.",
+  "aiExport.splitDesc": "Exporte plusieurs fichiers d'environ 50 mods chacun (descriptions complètes). Passez chaque fichier dans l'IA séparément. Le plus précis, mais le plus laborieux."
 }

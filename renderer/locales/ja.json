@@ -245,5 +245,64 @@
 
   "search.placeholder": "Mod を検索...",
 
-  "language": "言語"
+  "language": "言語",
+
+  "tutorial.overview.organize": "<strong>Mod を整理</strong> — カテゴリ列間で Mod をドラッグ＆ドロップしてロード順を並べ替え",
+  "tutorial.overview.conflicts": "<strong>詳細な競合検出</strong> — データ、アセット、レベルの競合を検出し、実際の値をインラインで表示",
+  "tutorial.overview.conflictMap": "<strong>競合マップ</strong> — 屋外・屋内の競合ゾーンを表示するインタラクティブな Kenshi ワールドマップ",
+  "tutorial.overview.aiSort": "<strong>AI ソート</strong> — Mod リストをエクスポートし、AI にロード順を提案させてインポート",
+  "tutorial.overview.pinUncat": "<strong>未分類を固定</strong> — 未分類の Mod を固定表示して、ドラッグ＆ドロップで簡単に並べ替え",
+  "tutorial.overview.themes": "<strong>Kenshi テーマ</strong> — ツールバーでダークテーマと Kenshi テーマを切り替え",
+  "tutorial.overview.packs": "<strong>Mod パック</strong> — Mod 構成をまるごと保存・読み込み",
+
+  "tutorial.sorting.1": "<strong>ドラッグ＆ドロップ</strong>でカテゴリ列間の Mod を移動して、ロード順を並べ替えられます。",
+  "tutorial.sorting.2": "<strong>複数選択</strong>は Ctrl+クリック（個別切替）や Shift+クリック（範囲選択）で行い、右クリックでまとめてカテゴリに移動できます。",
+  "tutorial.sorting.3": "<strong>まとめてドラッグ</strong> — 複数の Mod を選択して、一括でドラッグ移動できます。",
+  "tutorial.sorting.4": "<strong>未分類を固定</strong>すると、リサイズ可能なサイドパネルが表示され、簡単に並べ替えできます。",
+  "tutorial.sorting.5": "<strong>列ヘッダーをドラッグ</strong>して、カテゴリ全体の順序を入れ替えられます。",
+
+  "tutorial.categories.1": "ツールバーの<strong>「+ カテゴリを追加」</strong>ボタンで新しいカテゴリを作成できます。",
+  "tutorial.categories.2": "<strong>カテゴリヘッダーを右クリック</strong>すると、名前の変更、色の変更、削除ができます。",
+  "tutorial.categories.3": "<strong>カテゴリヘッダーをドラッグ</strong>して左右に並べ替えできます。ロード順はカテゴリの並び順に従います。",
+  "tutorial.categories.4": "<strong>カテゴリをリセット</strong>すると、デフォルトのカテゴリ構成に戻ります。",
+
+  "tutorial.packs.1": "<strong>パック</strong>タブで Mod 構成をまるごと保存・読み込みできます。",
+  "tutorial.packs.2": "<strong>現在の状態を保存</strong>で、カテゴリ、Mod の順序、有効/無効の状態がすべて保存されます。",
+  "tutorial.packs.3": "パックを読み込めば、以前の構成を瞬時に復元できます。",
+  "tutorial.packs.4": "プレイスタイルの切り替えや、AI Sort 前のバックアップに便利です。",
+
+  "tutorial.importExport.1": "<strong>リストをエクスポート</strong> — カテゴリ、ロード順、有効/無効の状態をテキストファイルに保存します。友人と共有したりバックアップに使えます。",
+  "tutorial.importExport.2": "<strong>リストをインポート</strong> — 以前エクスポートした BEEP の Mod リストを読み込み、カテゴリと並び順をすべて復元します。",
+  "tutorial.importExport.3": "<strong>汎用インポート</strong> — .mod ファイル名を1行ずつ並べたプレーンなリストにも対応しています。未分類の Mod がリストの順序に並べ替えられます。",
+
+  "tutorial.conflicts.1": "<strong>競合を確認</strong>は .mod ファイル、レベルデータ、アセットファイルを詳細に解析して、実際の競合を検出します。",
+  "tutorial.conflicts.2": "<strong>緑</strong> = この Mod が優先、<strong>赤</strong> = 上書きされている、<strong>黄</strong> = 両方とも第三の Mod に上書きされている。",
+  "tutorial.conflicts.3": "プロパティを展開すると、各 Mod が設定している<strong>実際の値</strong>を確認できます。同一の値はフィルタされます。",
+  "tutorial.conflicts.4": "<strong>マップ</strong>をクリックすると、Kenshi のワールドマップ上でズーム・パン操作や屋外/屋内の切り替えとともに競合を確認できます。",
+
+  "tutorial.other.1": "<strong>テーマ</strong> — ツールバーでダーク/Kenshi テーマを切り替えられます。",
+  "tutorial.other.2": "<strong>Workshop</strong> タブ — アプリ内で Steam Workshop を直接閲覧できます。",
+  "tutorial.other.3": "<strong>Mod ガイド</strong>タブ — Steam の Kenshi ロード順ガイドを表示します。",
+  "tutorial.other.4": "<strong>自動アップデート</strong> — 起動時に新しいバージョンを自動で確認します。",
+
+  "tutorial.aiSort.desc": "AI Sort は AI チャットボット（Claude や ChatGPT）を使って、Mod を適切な Kenshi のロード順に自動で並べ替える機能です。",
+  "tutorial.aiSort.1": "まず<strong>パックタブで Mod パックを保存</strong>しておくと、いつでも元に戻せます。",
+  "tutorial.aiSort.2": "<strong>AI Sort エクスポート</strong>をクリックすると、Steam の説明文を取得してテキストファイルを生成します。",
+  "tutorial.aiSort.3": "生成されたファイルの内容を AI チャットボットに貼り付けて送信します。",
+  "tutorial.aiSort.4": "AI の応答をコピーします。",
+  "tutorial.aiSort.5": "<strong>AI Sort インポート</strong>をクリックし、応答を貼り付けて「順序を適用」を押します。",
+  "tutorial.aiSort.privacy": "データが自動送信されることはありません。あなた自身が仲介する形です。アプリが通信するのは Steam の公開 API（説明文の取得）のみです。",
+
+  "tutorial.aiExport.1": "<strong>未分類のみ</strong> — 未分類の Mod を詳細な説明文付きでエクスポート（推奨）",
+  "tutorial.aiExport.2": "<strong>未分類コンパクト</strong> — タグと短縮した説明文を使用（Mod 50件以上向け）",
+  "tutorial.aiExport.3": "<strong>全 Mod コンパクト</strong> — すべての Mod を短い説明文でエクスポート（500件以上向け）",
+  "tutorial.aiExport.4": "<strong>全 Mod 詳細</strong> — 完全な説明文付き（最も正確だがファイルサイズ大）",
+  "tutorial.aiExport.5": "<strong>バッチ分割</strong> — 約50件ずつ複数ファイルに分割",
+  "tutorial.aiExport.formatNote": "AI の応答に余計なコメントが含まれていても問題ありません。パーサーは [カテゴリ] ヘッダーと .mod ファイル名以外をすべて除去します。",
+
+  "aiExport.uncatDesc": "未分類の Mod のみ説明文を取得します。分類済みの Mod はファイル名だけ記載されます。ファイルが小さく、AI の処理が速く、コストも抑えられます。",
+  "aiExport.uncatCompactDesc": "未分類の Mod のみ、タグと短縮した説明文を使用します。分類済みの Mod はファイル名のみ記載されます。精度とファイルサイズのバランスが最も良い形式です。",
+  "aiExport.compactDesc": "すべての Mod を Steam タグと先頭200文字で出力します。500件以上の Mod でも1つのプロンプトに収まります。トークン制限を超えずに全体を再ソートしたい場合に使用してください。",
+  "aiExport.allDesc": "有効なすべての Mod の完全な説明文を取得します。最も正確ですが、非常に大きなファイルになります。100件以上の Mod では AI のトークン制限を超える可能性があります。",
+  "aiExport.splitDesc": "約50件ずつ複数のファイルに分割してエクスポートします（完全な説明文付き）。各ファイルを個別に AI に処理させてください。最も正確ですが手間がかかります。"
 }

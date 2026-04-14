@@ -8,6 +8,7 @@ const SUPPORTED_LOCALES = {
   ja: '日本語',
   zh: '中文',
   fr: 'Français',
+  ru: 'Русский',
 };
 
 let currentLocale = 'en';
@@ -70,6 +71,10 @@ function updateDOM() {
   document.querySelectorAll('[data-i18n-title]').forEach((el) => {
     const key = el.getAttribute('data-i18n-title');
     el.title = t(key);
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-html');
+    el.innerHTML = t(key);
   });
 }
 

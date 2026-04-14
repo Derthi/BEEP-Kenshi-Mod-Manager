@@ -245,5 +245,64 @@
 
   "search.placeholder": "Search mods...",
 
-  "language": "Language"
+  "language": "Language",
+
+  "tutorial.overview.organize": "<strong>Organize mods</strong> — drag and drop mods between category columns to sort your load order",
+  "tutorial.overview.conflicts": "<strong>Deep conflict detection</strong> — detects data, asset, and level conflicts with actual values shown inline",
+  "tutorial.overview.conflictMap": "<strong>Conflict map</strong> — interactive Kenshi world map showing exterior and interior conflict zones",
+  "tutorial.overview.aiSort": "<strong>AI sorting</strong> — export your mod list, let AI suggest an order, then import it",
+  "tutorial.overview.pinUncat": "<strong>Pin Uncategorized</strong> — pin uncategorized mods for easy drag-and-drop sorting",
+  "tutorial.overview.themes": "<strong>Kenshi theme</strong> — toggle between Dark and Kenshi themes in the toolbar",
+  "tutorial.overview.packs": "<strong>Mod Packs</strong> — save and load complete mod configurations",
+
+  "tutorial.sorting.1": "<strong>Drag and drop</strong> mods between category columns to sort your load order.",
+  "tutorial.sorting.2": "<strong>Multi-select</strong> with Ctrl+click (toggle) or Shift+click (range), then right-click to move them all to a category at once.",
+  "tutorial.sorting.3": "<strong>Group drag</strong> — select multiple mods and drag them together.",
+  "tutorial.sorting.4": "<strong>Pin Uncategorized</strong> to get a resizable side panel for easy sorting.",
+  "tutorial.sorting.5": "<strong>Drag column headers</strong> to reorder entire categories.",
+
+  "tutorial.categories.1": "<strong>Add categories</strong> with the \"+ Add Category\" button in the toolbar.",
+  "tutorial.categories.2": "<strong>Right-click a category header</strong> to rename, change color, or delete it.",
+  "tutorial.categories.3": "<strong>Drag category headers</strong> left/right to reorder them. Load order follows category order.",
+  "tutorial.categories.4": "<strong>Reset Categories</strong> restores the default category set.",
+
+  "tutorial.packs.1": "Go to the <strong>Packs</strong> tab to save and load complete mod configurations.",
+  "tutorial.packs.2": "<strong>Save Current</strong> captures your entire setup — categories, mod order, and active/inactive state.",
+  "tutorial.packs.3": "Load a pack to instantly restore a previous configuration.",
+  "tutorial.packs.4": "Great for switching between different playthroughs or saving before AI sort.",
+
+  "tutorial.importExport.1": "<strong>Export List</strong> — saves your full setup (categories, load order, active/inactive state) to a text file. Share it with friends or back it up.",
+  "tutorial.importExport.2": "<strong>Import List</strong> — loads a previously exported BEEP mod list, restoring all categories and ordering.",
+  "tutorial.importExport.3": "<strong>Generic import</strong> — also supports plain lists of .mod filenames (one per line). These reorder your uncategorized mods to match the list.",
+
+  "tutorial.conflicts.1": "<strong>Check Conflicts</strong> deep-parses .mod files, level data, and asset files to find real conflicts.",
+  "tutorial.conflicts.2": "<strong>Green</strong> = this mod wins, <strong>Red</strong> = overridden, <strong>Yellow</strong> = both overridden by a third mod.",
+  "tutorial.conflicts.3": "Expand any property to see the <strong>actual values</strong> each mod sets. Identical values are filtered out.",
+  "tutorial.conflicts.4": "Click <strong>Map</strong> to see conflicts on the Kenshi world map with zoom, pan, and exterior/interior toggle.",
+
+  "tutorial.other.1": "<strong>Themes</strong> — toggle Dark/Kenshi theme in the toolbar.",
+  "tutorial.other.2": "<strong>Workshop</strong> tab — browse Steam Workshop directly in the app.",
+  "tutorial.other.3": "<strong>Modding Guide</strong> tab — Kenshi load order guide from Steam.",
+  "tutorial.other.4": "<strong>Auto-update</strong> — checks for new versions on launch.",
+
+  "tutorial.aiSort.desc": "AI Sort uses an AI chatbot (Claude or ChatGPT) to automatically sort your mods into the correct Kenshi load order.",
+  "tutorial.aiSort.1": "<strong>Save a mod pack first</strong> in the Packs tab so you can revert.",
+  "tutorial.aiSort.2": "Click <strong>AI Sort Export</strong> — fetches Steam descriptions and builds a text file.",
+  "tutorial.aiSort.3": "Paste the file into an AI chatbot and send it.",
+  "tutorial.aiSort.4": "Copy the AI's response.",
+  "tutorial.aiSort.5": "Click <strong>AI Sort Import</strong>, paste, and click Apply Order.",
+  "tutorial.aiSort.privacy": "No data is sent automatically — you are the middleman. The app only contacts Steam's public API for descriptions.",
+
+  "tutorial.aiExport.1": "<strong>Uncategorized Only</strong> — unsorted mods with full descriptions (recommended)",
+  "tutorial.aiExport.2": "<strong>Uncategorized Compact</strong> — tags + truncated descriptions (50+ mods)",
+  "tutorial.aiExport.3": "<strong>All Mods Compact</strong> — everything with short descriptions (500+ mods)",
+  "tutorial.aiExport.4": "<strong>All Mods Full</strong> — complete descriptions (most accurate, largest)",
+  "tutorial.aiExport.5": "<strong>Split Batches</strong> — multiple files with ~50 mods each",
+  "tutorial.aiExport.formatNote": "Extra commentary is OK — the parser strips everything that isn't a [Category] header or a .mod filename.",
+
+  "aiExport.uncatDesc": "Only fetches descriptions for mods in Uncategorized. Already-sorted mods are listed by filename only. Much smaller file, faster AI processing, lower cost.",
+  "aiExport.uncatCompactDesc": "Only unsorted mods, using tags + truncated descriptions. Already-sorted mods listed by filename. Best balance of accuracy and size.",
+  "aiExport.compactDesc": "All mods using Steam tags + first 200 characters. Fits 500+ mods in a single prompt. Use for a full re-sort without exceeding token limits.",
+  "aiExport.allDesc": "Fetches full descriptions for every active mod. Most accurate but produces a very large file. May exceed AI token limits for 100+ mods.",
+  "aiExport.splitDesc": "Exports multiple files with ~50 mods each (full descriptions). Run each through the AI separately. Most accurate but most tedious."
 }
