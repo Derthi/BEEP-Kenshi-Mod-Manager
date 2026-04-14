@@ -245,6 +245,8 @@
 
   "search.placeholder": "Search mods...",
 
+  "context.openFolder": "Open Mod Folder",
+
   "language": "Language",
 
   "tutorial.overview.organize": "<strong>Organize mods</strong> — drag and drop mods between category columns to sort your load order",

@@ -260,8 +260,40 @@ body::after {
   font-size: 13px;
 }
 
+.columns-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.global-search-bar {
+  padding: 4px 8px;
+  background: #141418;
+  border-bottom: 1px solid #252528;
+  flex-shrink: 0;
+}
+
+.global-search-input {
+  padding: 5px 10px;
+  background: #1a1a1e;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.global-search-input:focus {
+  border-color: #8ab4f8;
+}
+
 .toolbar-center {
   display: flex;
+  align-items: center;
   gap: 8px;
   padding: 0 12px;
   border-left: 1px solid #252528;
@@ -2148,6 +2180,21 @@ body.kenshi-theme .mod-count {
 
 body.kenshi-theme .theme-label {
   color: #baa888;
+}
+
+body.kenshi-theme .global-search-bar {
+  background: #2a2218;
+  border-bottom-color: #6a5a45;
+}
+
+body.kenshi-theme .global-search-input {
+  background: #3a2f20;
+  color: #e8dcc8;
+  border-color: #7a6a55;
+}
+
+body.kenshi-theme .global-search-input:focus {
+  border-color: #d4a862;
 }
 
 body.kenshi-theme .btn {

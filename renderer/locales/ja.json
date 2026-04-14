@@ -245,6 +245,8 @@
 
   "search.placeholder": "Mod を検索...",
 
+  "context.openFolder": "Modフォルダを開く",
+
   "language": "言語",
 
   "tutorial.overview.organize": "<strong>Mod を整理</strong> — カテゴリ列間で Mod をドラッグ＆ドロップしてロード順を並べ替え",

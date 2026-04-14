@@ -231,6 +231,25 @@ function applyCategoriesToMods() {
 
 refreshBtn.addEventListener('click', loadMods);
 
+// Global search — filters mod cards across all categories (skips pinned panel)
+const globalSearchInput = document.getElementById('global-search-input');
+globalSearchInput.addEventListener('input', () => {
+  const query = globalSearchInput.value.toLowerCase();
+  const pinnedEl = document.getElementById('pinned-uncat-panel');
+  // Filter mod cards
+  document.querySelectorAll('.mod-card').forEach((card) => {
+    if (pinnedEl && pinnedEl.contains(card)) return;
+    const name = card.querySelector('.card-name');
+    const text = name ? name.textContent.toLowerCase() : '';
+    card.style.display = text.includes(query) ? '' : 'none';
+  });
+  // Hide categories with no visible mods
+  document.querySelectorAll('#category-columns .category-column').forEach((col) => {
+    const visibleCards = col.querySelectorAll('.mod-card:not([style*="display: none"])');
+    col.style.display = (query && visibleCards.length === 0) ? 'none' : '';
+  });
+});
+
 const settingsBtn = document.getElementById('settings-btn');
 settingsBtn.addEventListener('click', () => {
   gamePathInput.value = config.gamePath || '';
@@ -1366,12 +1385,13 @@ function createColumn(catId, name, color, globalOrder) {
 
   const headerCount = document.createElement('span');
   headerCount.className = 'column-header-count';
+  const modCountText = `${catMods.length}`;
   if (activeInCat.length > 0) {
     const first = globalOrder[activeInCat[0].filename];
     const last = globalOrder[activeInCat[activeInCat.length - 1].filename];
-    headerCount.textContent = `#${first}-${last}`;
+    headerCount.textContent = `(${modCountText}) #${first}-${last}`;
   } else {
-    headerCount.textContent = '0';
+    headerCount.textContent = `(${modCountText})`;
   }
 
   // Collapse/expand button
@@ -1849,6 +1869,13 @@ function hideContextMenu() {
   contextTarget = null;
   modContextTarget = null;
 }
+
+document.getElementById('mod-context-open-folder').addEventListener('click', () => {
+  if (modContextTarget && modContextTarget.filePath) {
+    window.api.showInFolder(modContextTarget.filePath);
+  }
+  hideContextMenu();
+});
 
 function showModContextMenu(x, y, mod) {
   hideContextMenu();

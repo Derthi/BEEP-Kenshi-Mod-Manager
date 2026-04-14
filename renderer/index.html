@@ -291,8 +291,13 @@ Test.mod</pre>
       <div id="pinned-uncat-panel" class="pinned-uncat-panel hidden"></div>
       <div id="pinned-resize-handle" class="panel-resize-handle hidden"></div>
 
-      <!-- Category Columns -->
-      <div id="category-columns" class="category-columns"></div>
+      <!-- Columns Wrapper (search + categories) -->
+      <div class="columns-wrapper">
+        <div class="global-search-bar">
+          <input type="text" id="global-search-input" class="global-search-input" data-i18n-placeholder="search.placeholder" placeholder="Search mods...">
+        </div>
+        <div id="category-columns" class="category-columns"></div>
+      </div>
     </div>
 
     <!-- Status Bar -->
@@ -309,6 +314,8 @@ Test.mod</pre>
 
   <!-- Mod Context Menu (hidden) -->
   <div id="mod-context-menu" class="context-menu hidden">
+    <div id="mod-context-open-folder" class="context-item" data-i18n="context.openFolder">Open Mod Folder</div>
+    <div class="context-separator"></div>
     <div class="context-label" data-i18n="category.moveTo">Move to category:</div>
     <div id="mod-context-categories"></div>
   </div>

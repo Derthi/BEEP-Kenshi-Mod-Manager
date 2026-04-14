@@ -21,4 +21,5 @@ contextBridge.exposeInMainWorld('api', {
   downloadUpdate: (url) => ipcRenderer.invoke('download-update', url),
   launchGame: (gamePath) => ipcRenderer.invoke('launch-game', gamePath),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  showInFolder: (filePath) => ipcRenderer.invoke('show-in-folder', filePath),
 });

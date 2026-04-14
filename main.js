@@ -189,6 +189,10 @@ ipcMain.handle('open-external', (_event, url) => {
   shell.openExternal(url);
 });
 
+ipcMain.handle('show-in-folder', (_event, filePath) => {
+  shell.showItemInFolder(filePath);
+});
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {

@@ -245,6 +245,8 @@
 
   "search.placeholder": "Поиск модов...",
 
+  "context.openFolder": "Открыть папку мода",
+
   "language": "Язык",
 
   "tutorial.overview.organize": "<strong>Организация модов</strong> — перетаскивайте моды между колонками категорий для сортировки порядка загрузки",
