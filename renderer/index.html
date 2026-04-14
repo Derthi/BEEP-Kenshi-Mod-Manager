@@ -13,35 +13,47 @@
   <div id="setup-screen" class="screen hidden">
     <div class="setup-container">
       <img src="Beep.jpg" class="setup-logo" alt="BEEP">
-      <h1>BEEP Kenshi Mod Manager</h1>
-      <p class="setup-tagline">Beep Enhances Every Playthrough</p>
-      <p>Works with <strong>Steam</strong> and <strong>GOG</strong> installations. Click Auto-Detect or browse to your Kenshi game folder manually.</p>
+      <h1 data-i18n="setup.title">BEEP Kenshi Mod Manager</h1>
+      <p class="setup-tagline" data-i18n="setup.tagline">Beep Enhances Every Playthrough</p>
+
+      <div class="language-select-wrap">
+        <label data-i18n="language">Language</label>
+        <select id="setup-language-select" class="language-select">
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+          <option value="ja">日本語</option>
+          <option value="zh">中文</option>
+          <option value="fr">Français</option>
+        </select>
+      </div>
+
+      <p data-i18n="setup.description">Works with Steam and GOG installations. Click Auto-Detect or browse to your Kenshi game folder manually.</p>
 
       <div class="auto-detect-section">
-        <button id="auto-detect-btn" class="btn btn-primary">Auto-Detect Kenshi</button>
+        <button id="auto-detect-btn" class="btn btn-primary" data-i18n="setup.autoDetect">Auto-Detect Kenshi</button>
         <span id="auto-detect-status" class="auto-detect-status"></span>
       </div>
 
       <div class="setup-field">
-        <label>Kenshi Game Folder <span class="required">*</span></label>
+        <label><span data-i18n="setup.gamePath">Kenshi Game Folder</span> <span class="required">*</span></label>
         <div class="path-picker">
-          <input type="text" id="game-path-input" readonly placeholder="Select Kenshi game folder (contains kenshi.exe)...">
-          <button id="game-path-btn" class="btn">Browse</button>
+          <input type="text" id="game-path-input" readonly data-i18n-placeholder="setup.gamePathPlaceholder" placeholder="Select Kenshi game folder (contains kenshi.exe)...">
+          <button id="game-path-btn" class="btn" data-i18n="setup.browse">Browse</button>
         </div>
-        <small>The folder containing kenshi_x64.exe or kenshi.exe — NOT the Mods subfolder</small>
+        <small data-i18n="setup.gamePathHelp">The folder containing kenshi_x64.exe or kenshi.exe — NOT the Mods subfolder</small>
       </div>
 
       <div class="setup-field">
-        <label>Steam Workshop Folder <span class="optional">(Steam only, optional)</span></label>
+        <label><span data-i18n="setup.steamPath">Steam Workshop Folder</span> <span class="optional" data-i18n="setup.steamPathOptional">(Steam only, optional)</span></label>
         <div class="path-picker">
-          <input type="text" id="steam-path-input" readonly placeholder="Select Steam workshop folder...">
-          <button id="steam-path-btn" class="btn">Browse</button>
-          <button id="steam-path-clear-btn" class="btn">Clear</button>
+          <input type="text" id="steam-path-input" readonly data-i18n-placeholder="setup.steamPathPlaceholder" placeholder="Select Steam workshop folder...">
+          <button id="steam-path-btn" class="btn" data-i18n="setup.browse">Browse</button>
+          <button id="steam-path-clear-btn" class="btn" data-i18n="setup.clear">Clear</button>
         </div>
-        <small>GOG users: leave this blank. Your mods in the Kenshi/Mods folder are detected automatically.</small>
+        <small data-i18n="setup.steamPathHelp">GOG users: leave this blank. Your mods in the Kenshi/Mods folder are detected automatically.</small>
       </div>
 
-      <button id="setup-continue-btn" class="btn btn-primary" disabled>Continue</button>
+      <button id="setup-continue-btn" class="btn btn-primary" disabled data-i18n="setup.continue">Continue</button>
     </div>
   </div>
 
@@ -54,33 +66,33 @@
         <h2>BEEP Kenshi Mod Manager</h2>
         <span id="mod-count" class="mod-count"></span>
         <div class="theme-toggle" title="Toggle Kenshi theme">
-          <span class="theme-label">Dark</span>
+          <span class="theme-label" data-i18n="toolbar.themeDark">Dark</span>
           <label class="toggle-switch">
             <input type="checkbox" id="theme-toggle-cb">
             <span class="toggle-slider"></span>
           </label>
-          <span class="theme-label">Kenshi</span>
+          <span class="theme-label" data-i18n="toolbar.themeKenshi">Kenshi</span>
         </div>
       </div>
       <div class="toolbar-center">
-        <button id="ai-export-btn" class="btn">AI Sort Export</button>
-        <button id="ai-import-btn" class="btn">AI Sort Import</button>
+        <button id="ai-export-btn" class="btn" data-i18n="toolbar.aiExport">AI Sort Export</button>
+        <button id="ai-import-btn" class="btn" data-i18n="toolbar.aiImport">AI Sort Import</button>
       </div>
       <div class="toolbar-right">
-        <button id="pin-uncat-btn" class="btn" title="Pin Uncategorized panel to left side">Pin Uncategorized</button>
-        <button id="github-btn" class="btn" title="View on GitHub">GitHub</button>
-        <button id="reset-categories-btn" class="btn btn-danger-subtle">Reset Categories</button>
-        <button id="add-category-btn" class="btn">+ Add Category</button>
-        <button id="layout-toggle-btn" class="btn btn-icon" title="Toggle horizontal/vertical layout">&#8646;</button>
-        <button id="settings-btn" class="btn" title="Change Kenshi folder paths">Folder Setup</button>
-        <button id="generate-conflicts-btn" class="btn">Check Conflicts</button>
-        <button id="map-btn" class="btn" title="View zone conflict map">Map</button>
-        <button id="export-list-btn" class="btn" title="Export mod list to file">Export List</button>
-        <button id="import-list-btn" class="btn" title="Import mod list from file">Import List</button>
-        <button id="refresh-btn" class="btn">Refresh</button>
-        <button id="save-btn" class="btn btn-primary">Save Load Order</button>
-        <button id="play-btn" class="btn btn-play">&#9654; Play</button>
-        <button id="update-btn" class="btn btn-icon" title="Check for updates">&#8635;</button>
+        <button id="pin-uncat-btn" class="btn" data-i18n="toolbar.pinUncat" data-i18n-title="toolbar.pinUncat">Pin Uncategorized</button>
+        <button id="github-btn" class="btn" data-i18n="toolbar.github" data-i18n-title="toolbar.githubTooltip">GitHub</button>
+        <button id="reset-categories-btn" class="btn btn-danger-subtle" data-i18n="toolbar.resetCategories">Reset Categories</button>
+        <button id="add-category-btn" class="btn" data-i18n="toolbar.addCategory">+ Add Category</button>
+        <button id="layout-toggle-btn" class="btn btn-icon" data-i18n-title="toolbar.layoutTooltip" title="Toggle horizontal/vertical layout">&#8646;</button>
+        <button id="settings-btn" class="btn" data-i18n="toolbar.folderSetup" data-i18n-title="toolbar.folderSetupTooltip" title="Change Kenshi folder paths">Folder Setup</button>
+        <button id="generate-conflicts-btn" class="btn" data-i18n="toolbar.checkConflicts">Check Conflicts</button>
+        <button id="map-btn" class="btn" data-i18n="toolbar.map" data-i18n-title="toolbar.mapTooltip" title="View zone conflict map">Map</button>
+        <button id="export-list-btn" class="btn" data-i18n="toolbar.exportList" data-i18n-title="toolbar.exportListTooltip" title="Export mod list to file">Export List</button>
+        <button id="import-list-btn" class="btn" data-i18n="toolbar.importList" data-i18n-title="toolbar.importListTooltip" title="Import mod list from file">Import List</button>
+        <button id="refresh-btn" class="btn" data-i18n="toolbar.refresh">Refresh</button>
+        <button id="save-btn" class="btn btn-primary" data-i18n="toolbar.save">Save Load Order</button>
+        <button id="play-btn" class="btn btn-play">&#9654; <span data-i18n="toolbar.play">Play</span></button>
+        <button id="update-btn" class="btn btn-icon" data-i18n-title="toolbar.updateTooltip" title="Check for updates">&#8635;</button>
       </div>
     </div>
 
@@ -90,56 +102,56 @@
       <div id="detail-panel" class="detail-panel">
         <div class="detail-tabs-wrap">
           <div class="detail-tabs detail-tabs-top">
-            <button id="tab-guide" class="detail-tab">Modding Guide</button>
-            <button id="tab-workshop" class="detail-tab">Workshop</button>
-            <button id="tab-packs" class="detail-tab">Packs</button>
-            <button id="tab-tutorial" class="detail-tab">Tutorial</button>
+            <button id="tab-guide" class="detail-tab" data-i18n="tabs.guide">Modding Guide</button>
+            <button id="tab-workshop" class="detail-tab" data-i18n="tabs.workshop">Workshop</button>
+            <button id="tab-packs" class="detail-tab" data-i18n="tabs.packs">Packs</button>
+            <button id="tab-tutorial" class="detail-tab" data-i18n="tabs.tutorial">Tutorial</button>
           </div>
           <div class="detail-tabs detail-tabs-bottom">
-            <button id="tab-details" class="detail-tab active">Details</button>
-            <button id="tab-modpage" class="detail-tab">Mod Page</button>
-            <button id="tab-conflicts" class="detail-tab">Conflicts</button>
+            <button id="tab-details" class="detail-tab active" data-i18n="tabs.details">Details</button>
+            <button id="tab-modpage" class="detail-tab" data-i18n="tabs.modPage">Mod Page</button>
+            <button id="tab-conflicts" class="detail-tab" data-i18n="tabs.conflicts">Conflicts</button>
           </div>
         </div>
         <div id="detail-view" class="detail-view">
-          <div class="detail-placeholder">Select a mod to view details</div>
+          <div class="detail-placeholder" data-i18n="detail.selectMod">Select a mod to view details</div>
           <div id="detail-content" class="detail-content hidden">
           <img id="detail-image" class="detail-image hidden" alt="">
           <h3 id="detail-name"></h3>
           <div class="detail-row">
-            <span class="detail-label">Author:</span>
+            <span class="detail-label" data-i18n="detail.author">Author:</span>
             <span id="detail-author"></span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Version:</span>
+            <span class="detail-label" data-i18n="detail.version">Version:</span>
             <span id="detail-version"></span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Source:</span>
+            <span class="detail-label" data-i18n="detail.source">Source:</span>
             <span id="detail-source"></span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">File:</span>
+            <span class="detail-label" data-i18n="detail.file">File:</span>
             <span id="detail-path" class="detail-path"></span>
           </div>
           <div class="detail-row" id="detail-deps-row">
-            <span class="detail-label">Dependencies:</span>
+            <span class="detail-label" data-i18n="detail.dependencies">Dependencies:</span>
             <span id="detail-deps"></span>
           </div>
           <div class="detail-row" id="detail-refs-row">
-            <span class="detail-label">References:</span>
+            <span class="detail-label" data-i18n="detail.references">References:</span>
             <span id="detail-refs"></span>
           </div>
           <div class="detail-row" id="detail-missing-row">
-            <span class="detail-label">Missing:</span>
+            <span class="detail-label" data-i18n="detail.missing">Missing:</span>
             <span id="detail-missing" class="dep-missing"></span>
           </div>
           <div class="detail-row" id="detail-needed-by-row">
-            <span class="detail-label">Needed by:</span>
+            <span class="detail-label" data-i18n="detail.neededBy">Needed by:</span>
             <span id="detail-needed-by" class="detail-dep-orange"></span>
           </div>
           <div class="detail-desc-section">
-            <span class="detail-label">Description:</span>
+            <span class="detail-label" data-i18n="detail.description">Description:</span>
             <p id="detail-desc"></p>
           </div>
         </div>
@@ -147,12 +159,12 @@
         <webview id="modpage-view" class="guide-view hidden" src="about:blank"></webview>
         <div id="tutorial-view" class="detail-view hidden">
           <div class="tutorial-guide">
-            <h4>Getting Started</h4>
-            <p>BEEP helps you organize your Kenshi mods into categories displayed as columns. Load order reads left-to-right, top-to-bottom. Your existing mods.cfg load order is preserved on first launch.</p>
+            <h4 data-i18n="tutorial.gettingStarted">Getting Started</h4>
+            <p data-i18n="tutorial.gettingStartedText">BEEP helps you organize your Kenshi mods into categories displayed as columns. Load order reads left-to-right, top-to-bottom. Your existing mods.cfg load order is preserved on first launch.</p>
 
             <hr class="tutorial-divider">
 
-            <h4>Sorting Mods</h4>
+            <h4 data-i18n="tutorial.sortingMods">Sorting Mods</h4>
             <ul>
               <li><strong>Drag and drop</strong> mods between category columns to sort your load order.</li>
               <li><strong>Multi-select</strong> with Ctrl+click (toggle) or Shift+click (range), then right-click to move them all to a category at once.</li>
@@ -163,7 +175,7 @@
 
             <hr class="tutorial-divider">
 
-            <h4>Categories</h4>
+            <h4 data-i18n="tutorial.categories">Categories</h4>
             <ul>
               <li><strong>Add categories</strong> with the "+ Add Category" button in the toolbar.</li>
               <li><strong>Right-click a category header</strong> to rename, change color, or delete it.</li>
@@ -173,7 +185,7 @@
 
             <hr class="tutorial-divider">
 
-            <h4>Mod Packs</h4>
+            <h4 data-i18n="tutorial.modPacks">Mod Packs</h4>
             <ul>
               <li>Go to the <strong>Packs</strong> tab to save and load complete mod configurations.</li>
               <li><strong>Save Current</strong> captures your entire setup — categories, mod order, and active/inactive state.</li>
@@ -183,7 +195,7 @@
 
             <hr class="tutorial-divider">
 
-            <h4>Import & Export</h4>
+            <h4 data-i18n="tutorial.importExport">Import & Export</h4>
             <ul>
               <li><strong>Export List</strong> — saves your full setup (categories, load order, active/inactive state) to a text file. Share it with friends or back it up.</li>
               <li><strong>Import List</strong> — loads a previously exported BEEP mod list, restoring all categories and ordering.</li>
@@ -192,7 +204,7 @@
 
             <hr class="tutorial-divider">
 
-            <h4>Conflict Detection</h4>
+            <h4 data-i18n="tutorial.conflictDetection">Conflict Detection</h4>
             <ul>
               <li><strong>Check Conflicts</strong> deep-parses .mod files, level data, and asset files to find real conflicts.</li>
               <li><strong>Green</strong> = this mod wins, <strong>Red</strong> = overridden, <strong>Yellow</strong> = both overridden by a third mod.</li>
@@ -202,7 +214,7 @@
 
             <hr class="tutorial-divider">
 
-            <h4>Other Features</h4>
+            <h4 data-i18n="tutorial.otherFeatures">Other Features</h4>
             <ul>
               <li><strong>Themes</strong> — toggle Dark/Kenshi theme in the toolbar.</li>
               <li><strong>Workshop</strong> tab — browse Steam Workshop directly in the app.</li>
@@ -212,7 +224,7 @@
 
             <hr class="tutorial-divider">
 
-            <h4>AI Sort</h4>
+            <h4 data-i18n="tutorial.aiSortTitle">AI Sort</h4>
             <p>AI Sort uses an AI chatbot (Claude or ChatGPT) to automatically sort your mods into the correct Kenshi load order.</p>
             <ol>
               <li><strong>Save a mod pack first</strong> in the Packs tab so you can revert.</li>
@@ -249,8 +261,8 @@ Test.mod</pre>
         <div id="packs-view" class="detail-view hidden">
           <div class="packs-section">
             <div class="packs-header">
-              <h4>Mod Packs</h4>
-              <button id="save-pack-btn" class="btn btn-primary btn-sm">Save Current</button>
+              <h4 data-i18n="packs.title">Mod Packs</h4>
+              <button id="save-pack-btn" class="btn btn-primary btn-sm" data-i18n="packs.saveCurrent">Save Current</button>
             </div>
             <div id="packs-list" class="packs-list"></div>
           </div>
@@ -259,16 +271,16 @@ Test.mod</pre>
         </div>
         <div id="conflicts-view" class="detail-view hidden">
           <div class="conflicts-header">
-            <h4 id="conflicts-title">Conflicts</h4>
-            <div class="conflict-focus-toggle" title="Dim non-conflicting mods">
-              <span class="theme-label">Focus</span>
+            <h4 id="conflicts-title" data-i18n="conflicts.title">Conflicts</h4>
+            <div class="conflict-focus-toggle" data-i18n-title="conflicts.focusTooltip" title="Dim non-conflicting mods">
+              <span class="theme-label" data-i18n="conflicts.focusLabel">Focus</span>
               <label class="toggle-switch">
                 <input type="checkbox" id="conflict-focus-cb">
                 <span class="toggle-slider"></span>
               </label>
             </div>
           </div>
-          <div id="conflicts-placeholder" class="detail-placeholder">Select a mod to view its conflicts, or click "Check Conflicts" in the toolbar first.</div>
+          <div id="conflicts-placeholder" class="detail-placeholder" data-i18n="conflicts.selectMod">Select a mod to view its conflicts, or click "Check Conflicts" in the toolbar first.</div>
           <div id="conflicts-content"></div>
         </div>
         <webview id="workshop-view" class="guide-view hidden" src="https://steamcommunity.com/app/233860/workshop/"></webview>
@@ -284,20 +296,20 @@ Test.mod</pre>
     </div>
 
     <!-- Status Bar -->
-    <div id="status-bar" class="status-bar">Ready</div>
+    <div id="status-bar" class="status-bar" data-i18n="status.ready">Ready</div>
   </div>
 
   <!-- Category Context Menu (hidden) -->
   <div id="context-menu" class="context-menu hidden">
-    <div class="context-item" data-action="rename">Rename</div>
-    <div class="context-item" data-action="color">Change Color</div>
+    <div class="context-item" data-action="rename" data-i18n="category.rename">Rename</div>
+    <div class="context-item" data-action="color" data-i18n="category.changeColor">Change Color</div>
     <div class="context-separator"></div>
-    <div class="context-item context-danger" data-action="delete">Delete Category</div>
+    <div class="context-item context-danger" data-action="delete" data-i18n="category.delete">Delete Category</div>
   </div>
 
   <!-- Mod Context Menu (hidden) -->
   <div id="mod-context-menu" class="context-menu hidden">
-    <div class="context-label">Move to category:</div>
+    <div class="context-label" data-i18n="category.moveTo">Move to category:</div>
     <div id="mod-context-categories"></div>
   </div>
   <input type="color" id="color-picker" class="hidden">
@@ -308,8 +320,8 @@ Test.mod</pre>
       <div id="input-modal-title" class="modal-title"></div>
       <input type="text" id="input-modal-input" class="modal-input" autocomplete="off">
       <div class="modal-buttons">
-        <button id="input-modal-cancel" class="btn">Cancel</button>
-        <button id="input-modal-ok" class="btn btn-primary">OK</button>
+        <button id="input-modal-cancel" class="btn" data-i18n="modal.cancel">Cancel</button>
+        <button id="input-modal-ok" class="btn btn-primary" data-i18n="modal.ok">OK</button>
       </div>
     </div>
   </div>
@@ -317,12 +329,12 @@ Test.mod</pre>
   <!-- AI Sort Guide Modal -->
   <div id="ai-guide-modal" class="modal-overlay hidden">
     <div class="modal-box modal-wide">
-      <div class="modal-title">AI Sort Guide</div>
+      <div class="modal-title" data-i18n="aiGuide.title">AI Sort Guide</div>
       <div class="ai-guide-body">
-        <h4>What is AI Sort?</h4>
+        <h4 data-i18n="aiGuide.whatIs">What is AI Sort?</h4>
         <p>AI Sort uses an AI chatbot (like Claude or ChatGPT) to automatically sort your mods into the correct Kenshi load order. It generates a text file with all your mod descriptions, which you paste into an AI chat. The AI returns a sorted list you can import back.</p>
 
-        <h4>How it works</h4>
+        <h4 data-i18n="aiGuide.howItWorks">How it works</h4>
         <ol>
           <li>The app calls Steam's public API to fetch the full Workshop description for each mod that needs sorting.</li>
           <li>It builds a text file containing each mod's name, filename, and description, along with your categories and a link to the Kenshi load order guide.</li>
@@ -331,7 +343,7 @@ Test.mod</pre>
         </ol>
         <p>The app never contacts any AI service directly — you are the middleman. Nothing leaves your machine until you manually paste it into a chat.</p>
 
-        <h4>How to use it</h4>
+        <h4 data-i18n="aiGuide.howToUse">How to use it</h4>
         <ol>
           <li><strong>Click "AI Sort Export"</strong> — this fetches full Steam descriptions for your <strong>uncategorized mods only</strong> and includes your current sorted categories as context. Already-sorted mods aren't re-described, saving tokens.</li>
           <li><strong>Open an AI chatbot</strong> — Claude (claude.ai) is recommended for large mod lists (supports ~200k tokens). ChatGPT works for smaller lists.</li>
@@ -340,7 +352,7 @@ Test.mod</pre>
           <li><strong>Click "AI Sort Import"</strong> — paste the AI's response and click "Apply Order".</li>
         </ol>
 
-        <h4>Important notes</h4>
+        <h4 data-i18n="aiGuide.important">Important notes</h4>
         <ul>
           <li><strong>Save a mod pack first!</strong> Use the Packs tab to save your current setup before importing an AI sort. This way you can always revert.</li>
           <li>The AI's sorting is a suggestion, not gospel. Always review the result and adjust manually if needed.</li>
@@ -348,7 +360,7 @@ Test.mod</pre>
           <li>For very large mod lists (500+), the AI may truncate its response. If mods are missing after import, they'll stay in their current category.</li>
         </ul>
 
-        <h4>What the AI response should look like</h4>
+        <h4 data-i18n="aiGuide.responseFormat">What the AI response should look like</h4>
         <p>The AI should respond with ONLY this format — no intro text, no notes:</p>
         <pre class="ai-guide-sample">[UI, Graphics, Performance]
 Dark UI.mod
@@ -369,7 +381,7 @@ TameBeasties.mod
 Test.mod</pre>
         <p>If the AI adds extra commentary, that's OK — the parser strips everything that isn't a [Category] header or a .mod filename.</p>
 
-        <h4>Is this safe?</h4>
+        <h4 data-i18n="aiGuide.isSafe">Is this safe?</h4>
         <ul>
           <li><strong>No mod files are uploaded.</strong> Only mod names and their public Steam Workshop descriptions are included in the export file.</li>
           <li><strong>One API call to Steam.</strong> The app makes a single bulk request to Steam's public API to fetch descriptions. This is the same API used by every mod manager and is well within rate limits.</li>
@@ -378,7 +390,7 @@ Test.mod</pre>
         </ul>
       </div>
       <div class="modal-buttons">
-        <button id="ai-guide-close" class="btn btn-primary">Got it</button>
+        <button id="ai-guide-close" class="btn btn-primary" data-i18n="modal.gotIt">Got it</button>
       </div>
     </div>
   </div>
@@ -386,30 +398,30 @@ Test.mod</pre>
   <!-- AI Export Choice Modal -->
   <div id="ai-export-modal" class="modal-overlay hidden">
     <div class="modal-box modal-wide">
-      <div class="modal-title">AI Sort Export</div>
+      <div class="modal-title" data-i18n="aiExport.title">AI Sort Export</div>
       <div class="ai-export-options">
         <div class="ai-export-option" id="ai-export-uncat">
-          <div class="ai-export-option-title">Uncategorized Only <span class="ai-export-recommended">(Recommended)</span></div>
+          <div class="ai-export-option-title"><span data-i18n="aiExport.uncatTitle">Uncategorized Only</span> <span class="ai-export-recommended" data-i18n="aiExport.uncatRecommended">(Recommended)</span></div>
           <p>Only fetches descriptions for mods in Uncategorized. Already-sorted mods are listed by filename only. Much smaller file, faster AI processing, lower cost.</p>
           <p class="ai-export-count" id="ai-export-uncat-count"></p>
         </div>
         <div class="ai-export-option" id="ai-export-uncat-compact">
-          <div class="ai-export-option-title">Uncategorized Compact <span class="ai-export-recommended">(Recommended for 50+ unsorted)</span></div>
+          <div class="ai-export-option-title"><span data-i18n="aiExport.uncatCompactTitle">Uncategorized Compact</span> <span class="ai-export-recommended" data-i18n="aiExport.uncatCompactRecommended">(Recommended for 50+ unsorted)</span></div>
           <p>Only unsorted mods, using tags + truncated descriptions. Already-sorted mods listed by filename. Best balance of accuracy and size.</p>
           <p class="ai-export-count" id="ai-export-uncat-compact-count"></p>
         </div>
         <div class="ai-export-option" id="ai-export-compact">
-          <div class="ai-export-option-title">All Mods — Compact</div>
+          <div class="ai-export-option-title" data-i18n="aiExport.compactTitle">All Mods — Compact</div>
           <p>All mods using Steam tags + first 200 characters. Fits 500+ mods in a single prompt. Use for a full re-sort without exceeding token limits.</p>
           <p class="ai-export-count" id="ai-export-compact-count"></p>
         </div>
         <div class="ai-export-option" id="ai-export-all">
-          <div class="ai-export-option-title">All Mods — Full Descriptions</div>
+          <div class="ai-export-option-title" data-i18n="aiExport.allTitle">All Mods — Full Descriptions</div>
           <p>Fetches full descriptions for every active mod. Most accurate but produces a very large file. May exceed AI token limits for 100+ mods.</p>
           <p class="ai-export-count" id="ai-export-all-count"></p>
         </div>
         <div class="ai-export-option" id="ai-export-split">
-          <div class="ai-export-option-title">Split into Batches</div>
+          <div class="ai-export-option-title" data-i18n="aiExport.splitTitle">Split into Batches</div>
           <p>Exports multiple files with ~50 mods each (full descriptions). Run each through the AI separately. Most accurate but most tedious.</p>
           <p class="ai-export-count" id="ai-export-split-count"></p>
         </div>
@@ -418,7 +430,7 @@ Test.mod</pre>
         </div>
       </div>
       <div class="modal-buttons">
-        <button id="ai-export-cancel" class="btn">Cancel</button>
+        <button id="ai-export-cancel" class="btn" data-i18n="modal.cancel">Cancel</button>
       </div>
     </div>
   </div>
@@ -426,11 +438,11 @@ Test.mod</pre>
   <!-- AI Import Modal -->
   <div id="ai-import-modal" class="modal-overlay hidden">
     <div class="modal-box modal-wide">
-      <div class="modal-title">Paste AI Response</div>
-      <textarea id="ai-import-textarea" class="modal-textarea" placeholder="Paste the AI's sorted load order here..."></textarea>
+      <div class="modal-title" data-i18n="aiImport.title">Paste AI Response</div>
+      <textarea id="ai-import-textarea" class="modal-textarea" data-i18n-placeholder="aiImport.placeholder" placeholder="Paste the AI's sorted load order here..."></textarea>
       <div class="modal-buttons">
-        <button id="ai-import-cancel" class="btn">Cancel</button>
-        <button id="ai-import-ok" class="btn btn-primary">Apply Order</button>
+        <button id="ai-import-cancel" class="btn" data-i18n="modal.cancel">Cancel</button>
+        <button id="ai-import-ok" class="btn btn-primary" data-i18n="aiImport.apply">Apply Order</button>
       </div>
     </div>
   </div>
@@ -440,11 +452,23 @@ Test.mod</pre>
     <div class="modal-box tutorial-modal">
       <img src="BeepFull.webp" class="tutorial-image" alt="Beep">
       <div class="tutorial-content">
-        <h2 class="tutorial-heading">Beep!</h2>
-        <p class="tutorial-subtitle">Welcome to <strong>BEEP Kenshi Mod Manager</strong></p>
-        <p class="tutorial-tagline">Beep Enhances Every Playthrough</p>
+        <h2 class="tutorial-heading" data-i18n="tutorial.heading">Beep!</h2>
+        <p class="tutorial-subtitle"><strong data-i18n="tutorial.welcome">Welcome to BEEP Kenshi Mod Manager</strong></p>
+        <p class="tutorial-tagline" data-i18n="tutorial.tagline">Beep Enhances Every Playthrough</p>
+
+        <div class="language-select-wrap">
+          <label data-i18n="language">Language</label>
+          <select id="tutorial-language-select" class="language-select">
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+            <option value="ja">日本語</option>
+            <option value="zh">中文</option>
+            <option value="fr">Français</option>
+          </select>
+        </div>
+
         <div class="tutorial-overview">
-          <h4>Quick Overview</h4>
+          <h4 data-i18n="tutorial.quickOverview">Quick Overview</h4>
           <ul>
             <li><strong>Organize mods</strong> — drag and drop mods between category columns to sort your load order</li>
             <li><strong>Deep conflict detection</strong> — detects data, asset, and level conflicts with actual values shown inline</li>
@@ -458,12 +482,12 @@ Test.mod</pre>
         <div class="tutorial-footer">
           <label class="tutorial-checkbox">
             <input type="checkbox" id="tutorial-dismiss-cb">
-            <span>Don't show this again</span>
+            <span data-i18n="tutorial.dontShow">Don't show this again</span>
           </label>
           <div class="tutorial-footer-buttons">
-            <button id="tutorial-folder-setup-btn" class="btn">Folder Setup</button>
-            <button id="tutorial-show-btn" class="btn">Show Tutorial</button>
-            <button id="tutorial-ok-btn" class="btn btn-primary">Got it!</button>
+            <button id="tutorial-folder-setup-btn" class="btn" data-i18n="tutorial.folderSetup">Folder Setup</button>
+            <button id="tutorial-show-btn" class="btn" data-i18n="tutorial.showTutorial">Show Tutorial</button>
+            <button id="tutorial-ok-btn" class="btn btn-primary" data-i18n="tutorial.gotIt">Got it!</button>
           </div>
         </div>
       </div>
@@ -474,10 +498,10 @@ Test.mod</pre>
   <div id="zone-map-modal" class="modal-overlay hidden">
     <div class="modal-box zone-map-modal">
       <div class="zone-map-header">
-        <h3 id="zone-map-title">Zone Conflict Map</h3>
+        <h3 id="zone-map-title" data-i18n="zoneMap.title">Zone Conflict Map</h3>
         <div class="zone-map-controls">
-          <button id="zone-layer-btn" class="btn btn-sm">Exterior</button>
-          <button id="zone-show-all-btn" class="btn btn-sm">Show All Zones</button>
+          <button id="zone-layer-btn" class="btn btn-sm" data-i18n="zoneMap.exterior">Exterior</button>
+          <button id="zone-show-all-btn" class="btn btn-sm" data-i18n="zoneMap.showAll">Show All Zones</button>
           <button id="zone-map-close" class="btn btn-icon">&times;</button>
         </div>
       </div>
@@ -489,7 +513,7 @@ Test.mod</pre>
           </div>
         </div>
         <div class="zone-map-sidebar" id="zone-map-sidebar">
-          <div class="zone-sidebar-title">Zone Conflicts</div>
+          <div class="zone-sidebar-title" data-i18n="zoneMap.sidebarTitle">Zone Conflicts</div>
           <div class="zone-sidebar-list" id="zone-sidebar-list"></div>
         </div>
       </div>
@@ -499,18 +523,19 @@ Test.mod</pre>
   <!-- Update Available Modal -->
   <div id="update-modal" class="modal-overlay hidden">
     <div class="modal-box update-modal">
-      <h3>Update Available!</h3>
+      <h3 data-i18n="update.title">Update Available!</h3>
       <p class="update-version" id="update-version-text"></p>
       <div class="update-links">
-        <a id="update-download-link" class="btn btn-primary" target="_blank">Download Update</a>
-        <a id="update-github-link" class="btn" target="_blank">View on GitHub</a>
+        <a id="update-download-link" class="btn btn-primary" target="_blank" data-i18n="update.download">Download Update</a>
+        <a id="update-github-link" class="btn" target="_blank" data-i18n="update.viewGithub">View on GitHub</a>
       </div>
       <div class="modal-buttons">
-        <button id="update-dismiss-btn" class="btn">Later</button>
+        <button id="update-dismiss-btn" class="btn" data-i18n="modal.later">Later</button>
       </div>
     </div>
   </div>
 
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

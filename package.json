@@ -25,7 +25,8 @@
       "preload.js",
       "icon.ico",
       "lib/**/*",
-      "renderer/**/*"
+      "renderer/**/*",
+      "renderer/locales/**/*"
     ]
   },
   "devDependencies": {

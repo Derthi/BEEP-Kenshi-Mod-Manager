@@ -118,6 +118,29 @@ body::after {
   margin-bottom: 8px !important;
 }
 
+.language-select-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.language-select-wrap label {
+  color: #999;
+  font-size: 12px;
+}
+
+.language-select {
+  padding: 4px 8px;
+  background: #252528;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .setup-container .setup-field {
   text-align: left;
 }

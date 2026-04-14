@@ -130,7 +130,7 @@ const autoDetectBtn = document.getElementById('auto-detect-btn');
 const autoDetectStatus = document.getElementById('auto-detect-status');
 
 async function autoDetect() {
-  autoDetectStatus.textContent = 'Searching...';
+  autoDetectStatus.textContent = t('detect.searching');
   autoDetectStatus.className = 'auto-detect-status';
   autoDetectBtn.disabled = true;
   try {
@@ -138,16 +138,16 @@ async function autoDetect() {
     if (result && result.gamePath) {
       gamePathInput.value = result.gamePath;
       if (result.steamModsPath) steamPathInput.value = result.steamModsPath;
-      const source = result.steamModsPath ? 'Steam' : 'GOG/standalone';
-      autoDetectStatus.textContent = `Found Kenshi installation! (${source})`;
+      const source = result.steamModsPath ? t('detect.sourceSteam') : t('detect.sourceGog');
+      autoDetectStatus.textContent = t('detect.found', { source });
       autoDetectStatus.className = 'auto-detect-status success';
       updateContinueBtn();
     } else {
-      autoDetectStatus.textContent = 'Could not find Kenshi. Use Browse to set paths manually.';
+      autoDetectStatus.textContent = t('detect.notFound');
       autoDetectStatus.className = 'auto-detect-status error';
     }
   } catch {
-    autoDetectStatus.textContent = 'Detection failed. Use Browse to set paths manually.';
+    autoDetectStatus.textContent = t('detect.failed');
     autoDetectStatus.className = 'auto-detect-status error';
   }
   autoDetectBtn.disabled = false;
@@ -189,7 +189,7 @@ async function showMainScreen() {
 }
 
 async function loadMods() {
-  setStatus('Loading mods...');
+  setStatus(t('status.loading'));
   try {
     mods = await window.api.discoverMods(config);
     applyCategoriesToMods();
@@ -210,11 +210,11 @@ async function loadMods() {
     selectedMod = null;
     renderColumns();
     const activeCount = mods.filter((m) => m.active).length;
-    modCount.textContent = `${mods.length} mods, ${activeCount} active`;
+    modCount.textContent = t('modCount', { total: mods.length, active: activeCount });
 
     updateDepStatus();
   } catch (err) {
-    setStatus('Error loading mods: ' + err.message, 'error');
+    setStatus(t('status.loadError', { error: err.message }), 'error');
   }
 }
 
@@ -247,7 +247,7 @@ const layoutToggleBtn = document.getElementById('layout-toggle-btn');
 layoutToggleBtn.addEventListener('click', () => {
   verticalLayout = !verticalLayout;
   columnsContainer.classList.toggle('vertical', verticalLayout);
-  layoutToggleBtn.title = verticalLayout ? 'Switch to horizontal layout' : 'Switch to vertical layout';
+  layoutToggleBtn.title = verticalLayout ? t('layout.switchHorizontal') : t('layout.switchVertical');
   renderColumns();
 });
 
@@ -296,7 +296,7 @@ const pinUncatBtn = document.getElementById('pin-uncat-btn');
 pinUncatBtn.addEventListener('click', () => {
   uncategorizedPinned = !uncategorizedPinned;
   pinUncatBtn.classList.toggle('btn-pinned-active', uncategorizedPinned);
-  pinUncatBtn.textContent = uncategorizedPinned ? 'Unpin Uncategorized' : 'Pin Uncategorized';
+  pinUncatBtn.textContent = uncategorizedPinned ? t('toolbar.unpinUncat') : t('toolbar.pinUncat');
   persistConfig();
   renderColumns();
 });
@@ -430,15 +430,15 @@ document.addEventListener('dragend', () => {
 
 saveBtn.addEventListener('click', async () => {
   const ordered = computeLoadOrder();
-  setStatus('Saving load order...');
+  setStatus(t('status.saving'));
   const result = await window.api.saveLoadOrder({
     gamePath: config.gamePath,
     activeModFilenames: ordered,
   });
   if (result.success) {
-    setStatus('Load order saved successfully!', 'success');
+    setStatus(t('status.saved'), 'success');
   } else {
-    setStatus('Error saving: ' + result.error, 'error');
+    setStatus(t('status.saveError', { error: result.error }), 'error');
   }
 });
 
@@ -447,21 +447,21 @@ const playBtn = document.getElementById('play-btn');
 playBtn.addEventListener('click', async () => {
   // Save first
   const ordered = computeLoadOrder();
-  setStatus('Saving and launching...');
+  setStatus(t('status.launching'));
   const saveResult = await window.api.saveLoadOrder({
     gamePath: config.gamePath,
     activeModFilenames: ordered,
   });
   if (!saveResult.success) {
-    setStatus('Error saving: ' + saveResult.error, 'error');
+    setStatus(t('status.saveError', { error: saveResult.error }), 'error');
     return;
   }
 
   const launchResult = await window.api.launchGame(config.gamePath);
   if (launchResult.success) {
-    setStatus('Kenshi launched!', 'success');
+    setStatus(t('status.launched'), 'success');
   } else {
-    setStatus('Error launching: ' + launchResult.error, 'error');
+    setStatus(t('status.launchError', { error: launchResult.error }), 'error');
   }
 });
 
@@ -477,24 +477,24 @@ async function runConflictCheck() {
   }).filter(Boolean);
 
   if (activeMods.length === 0) {
-    setStatus('No active mods to check.', 'error');
+    setStatus(t('status.noActiveMods'), 'error');
     return;
   }
 
-  setStatus(`Scanning ${activeMods.length} mods for conflicts...`);
+  setStatus(t('status.scanning', { count: activeMods.length }));
   generateConflictsBtn.disabled = true;
 
   try {
     conflictData = await window.api.generateConflicts(activeMods);
     const conflictModCount = Object.keys(conflictData.modConflicts).length;
     if (conflictData.totalConflicts > 0) {
-      setStatus(`Found ${conflictData.totalConflicts} conflicts across ${conflictModCount} mods.`, 'error');
+      setStatus(t('status.conflictsFound', { conflicts: conflictData.totalConflicts, mods: conflictModCount }), 'error');
     } else {
-      setStatus('No conflicts found!', 'success');
+      setStatus(t('status.noConflicts'), 'success');
     }
     renderColumns(); // re-render to show conflict indicators
   } catch (err) {
-    setStatus('Error checking conflicts: ' + err.message, 'error');
+    setStatus(t('status.conflictError', { error: err.message }), 'error');
   }
 
   generateConflictsBtn.disabled = false;
@@ -528,7 +528,7 @@ exportListBtn.addEventListener('click', async () => {
   }
 
   await window.api.writeFile(filePath, lines.join('\n'));
-  setStatus('Mod list exported!', 'success');
+  setStatus(t('status.exported'), 'success');
 });
 
 importListBtn.addEventListener('click', async () => {
@@ -593,12 +593,12 @@ importListBtn.addEventListener('click', async () => {
     syncModCategories();
     persistConfig();
     renderColumns();
-    setStatus(`Imported BEEP mod list (${Object.keys(catMap).length} categories).`, 'success');
+    setStatus(t('status.importedBeep', { count: Object.keys(catMap).length }), 'success');
   } else {
     // Generic import: just a list of .mod filenames — apply as uncategorized order
     const filenames = lines.filter((l) => l.endsWith('.mod'));
     if (filenames.length === 0) {
-      setStatus('No .mod filenames found in file.', 'error');
+      setStatus(t('status.noModFilenames'), 'error');
       return;
     }
 
@@ -623,7 +623,7 @@ importListBtn.addEventListener('click', async () => {
     syncModCategories();
     persistConfig();
     renderColumns();
-    setStatus(`Imported generic mod list (${filenames.length} mods reordered in Uncategorized).`, 'success');
+    setStatus(t('status.importedGeneric', { count: filenames.length }), 'success');
   }
 });
 
@@ -638,7 +638,7 @@ document.addEventListener('keydown', async (e) => {
     }
     const count = Object.keys(db).length;
     const dbPath = await window.api.saveModDatabase(db);
-    setStatus(`Database built: ${count} mods saved to ${dbPath}`, 'success');
+    setStatus(t('status.dbBuilt', { count, path: dbPath }), 'success');
   }
 });
 
@@ -646,43 +646,43 @@ document.addEventListener('keydown', async (e) => {
 
 const updateBtn = document.getElementById('update-btn');
 updateBtn.addEventListener('click', async () => {
-  setStatus('Checking for updates...');
+  setStatus(t('status.checkingUpdate'));
   updateBtn.disabled = true;
 
   const info = await window.api.checkForUpdate();
   if (!info) {
-    setStatus('Could not check for updates.', 'error');
+    setStatus(t('status.updateCheckFailed'), 'error');
     updateBtn.disabled = false;
     return;
   }
 
   if (!info.hasUpdate) {
-    setStatus(`You're on the latest version (v${info.currentVersion}).`, 'success');
+    setStatus(t('status.upToDate', { version: info.currentVersion }), 'success');
     updateBtn.disabled = false;
     return;
   }
 
   if (!info.downloadUrl) {
-    setStatus(`Update v${info.latestVersion} available! Download manually from GitHub.`, 'success');
+    setStatus(t('status.updateAvailable', { version: info.latestVersion }), 'success');
     updateBtn.disabled = false;
     return;
   }
 
   const confirmed = await showConfirmModal(
-    `Update available: v${info.currentVersion} → v${info.latestVersion}\n\nDownload and install? The app will restart automatically.`
+    t('confirm.updateAvailable', { current: info.currentVersion, latest: info.latestVersion })
   );
   if (!confirmed) {
     updateBtn.disabled = false;
-    setStatus('Update cancelled.');
+    setStatus(t('status.updateCancelled'));
     return;
   }
 
-  setStatus(`Downloading v${info.latestVersion}...`);
+  setStatus(t('status.downloading', { version: info.latestVersion }));
   const result = await window.api.downloadUpdate(info.downloadUrl);
   if (result.success) {
-    setStatus('Update installed! Restarting...', 'success');
+    setStatus(t('status.updateInstalled'), 'success');
   } else {
-    setStatus('Update failed: ' + result.error, 'error');
+    setStatus(t('status.updateFailed', { error: result.error }), 'error');
     updateBtn.disabled = false;
   }
 });
@@ -808,8 +808,8 @@ function openZoneMap(focusZone) {
   selectedZoneKey = focusKey;
   showAllZones = true;
   zoneLayer = 'exterior';
-  zoneShowAllBtn.textContent = 'Hide All Zones';
-  zoneLayerBtn.textContent = 'Exterior';
+  zoneShowAllBtn.textContent = t('zoneMap.hideAll');
+  zoneLayerBtn.textContent = t('zoneMap.exterior');
 
   zoneMapModal.classList.remove('hidden');
 
@@ -878,7 +878,7 @@ function renderZoneSidebar() {
   if (zoneConflicts.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'zone-no-conflicts';
-    empty.textContent = `No ${zoneLayer} conflicts detected.`;
+    empty.textContent = t('zoneMap.noConflicts', { layer: zoneLayer });
     zoneSidebarList.appendChild(empty);
     return;
   }
@@ -1022,14 +1022,14 @@ function selectZone(key) {
 // Show All toggle
 zoneShowAllBtn.addEventListener('click', () => {
   showAllZones = !showAllZones;
-  zoneShowAllBtn.textContent = showAllZones ? 'Hide All Zones' : 'Show All Zones';
+  zoneShowAllBtn.textContent = showAllZones ? t('zoneMap.hideAll') : t('zoneMap.showAll');
   renderZoneOverlays();
 });
 
 // Layer toggle (exterior / interior)
 zoneLayerBtn.addEventListener('click', () => {
   zoneLayer = zoneLayer === 'exterior' ? 'interior' : 'exterior';
-  zoneLayerBtn.textContent = zoneLayer === 'exterior' ? 'Exterior' : 'Interior';
+  zoneLayerBtn.textContent = zoneLayer === 'exterior' ? t('zoneMap.exterior') : t('zoneMap.interior');
   zoneConflicts = allZoneConflicts[zoneLayer];
   selectedZoneKey = null;
   renderZoneOverlays();
@@ -1114,9 +1114,9 @@ function updateDepStatus() {
     }
   }
   if (depProblems > 0) {
-    setStatus(`Warning: ${depProblems} dependency issues across ${problemMods.size} mods — click mods highlighted in red for details.`, 'error');
+    setStatus(t('status.depWarning', { count: depProblems, mods: problemMods.size }), 'error');
   } else {
-    setStatus('Ready');
+    setStatus(t('status.ready'));
   }
 }
 
@@ -1261,7 +1261,7 @@ function renderColumns() {
       const searchInput = document.createElement('input');
       searchInput.type = 'text';
       searchInput.className = 'pinned-search-input';
-      searchInput.placeholder = 'Search mods...';
+      searchInput.placeholder = t('search.placeholder');
       searchInput.value = searchVal;
       searchBox.appendChild(searchInput);
 
@@ -1349,12 +1349,12 @@ function createColumn(catId, name, color, globalOrder) {
   // Make name clickable to rename (not for uncategorized)
   if (catId !== UNCATEGORIZED) {
     headerName.classList.add('column-header-name-editable');
-    headerName.title = 'Click to rename';
+    headerName.title = t('category.clickRename');
     headerName.addEventListener('click', async (e) => {
       e.stopPropagation();
       const cat = categories.find((c) => c.id === catId);
       if (!cat) return;
-      const newName = await showInputModal('Category name:', cat.name);
+      const newName = await showInputModal(t('category.namePrompt'), cat.name);
       if (newName && newName.trim()) {
         cat.name = newName.trim();
         syncModCategories();
@@ -1379,7 +1379,7 @@ function createColumn(catId, name, color, globalOrder) {
   minimizeBtn.className = 'column-move-btn';
   const isMinimized = minimizedCategories.has(catId);
   minimizeBtn.textContent = isMinimized ? '+' : '\u2212';
-  minimizeBtn.title = isMinimized ? 'Expand category' : 'Collapse category';
+  minimizeBtn.title = isMinimized ? t('category.expand') : t('category.collapse');
   minimizeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (minimizedCategories.has(catId)) {
@@ -1418,13 +1418,13 @@ function createColumn(catId, name, color, globalOrder) {
     const moveUp = document.createElement('span');
     moveUp.className = 'column-move-btn';
     moveUp.textContent = upIcon;
-    moveUp.title = verticalLayout ? 'Move category up' : 'Move category left';
+    moveUp.title = verticalLayout ? t('category.moveUp') : t('category.moveLeft');
     moveUp.addEventListener('click', (e) => { e.stopPropagation(); swapCategory(-1); });
 
     const moveDown = document.createElement('span');
     moveDown.className = 'column-move-btn';
     moveDown.textContent = downIcon;
-    moveDown.title = verticalLayout ? 'Move category down' : 'Move category right';
+    moveDown.title = verticalLayout ? t('category.moveDown') : t('category.moveRight');
     moveDown.addEventListener('click', (e) => { e.stopPropagation(); swapCategory(1); });
 
     const headerRow1 = document.createElement('div');
@@ -1440,7 +1440,7 @@ function createColumn(catId, name, color, globalOrder) {
     colorBtn.style.borderRadius = '3px';
     colorBtn.style.display = 'inline-block';
     colorBtn.textContent = '';
-    colorBtn.title = 'Change color';
+    colorBtn.title = t('category.changeColorTooltip');
     colorBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       colorPicker.value = color;
@@ -1452,12 +1452,12 @@ function createColumn(catId, name, color, globalOrder) {
     const deleteBtn = document.createElement('span');
     deleteBtn.className = 'column-move-btn column-delete-btn';
     deleteBtn.textContent = '\u2715';
-    deleteBtn.title = 'Delete category';
+    deleteBtn.title = t('category.deleteTooltip');
     deleteBtn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const cat = categories.find((c) => c.id === catId);
       if (!cat) return;
-      const confirmed = await showConfirmModal(`Delete category "${cat.name}"?\n\nAll mods will be moved to Uncategorized.`);
+      const confirmed = await showConfirmModal(t('confirm.deleteCategory', { name: cat.name }));
       if (!confirmed) return;
       for (const mod of mods) {
         if (mod.category === cat.id) {
@@ -1622,14 +1622,14 @@ function createModCard(mod, catColor, globalOrder) {
         const depMod = findDepMod(dep);
         if (!depMod) {
           // Missing: dependency not installed at all
-          problems.push(`${dep} — not installed`);
+          problems.push(`${dep} — ${t('deps.notInstalled')}`);
         } else if (!depMod.active) {
           // Inactive: dependency exists but is disabled
-          problems.push(`${dep} — not active`);
+          problems.push(`${dep} — ${t('deps.notActive')}`);
         } else if (globalOrder[mod.filename] && globalOrder[depMod.filename]
             && globalOrder[mod.filename] < globalOrder[depMod.filename]) {
           // Wrong order: this mod loads before its dependency
-          problems.push(`${dep} — loads after this mod`);
+          problems.push(`${dep} — ${t('deps.loadsAfter')}`);
         }
       }
 
@@ -1867,7 +1867,7 @@ function showModContextMenu(x, y, mod) {
     const header = document.createElement('div');
     header.className = 'context-item';
     header.style.cssText = 'color:#8ab4f8;font-weight:600;cursor:default;font-size:10px;';
-    header.textContent = `Move ${bulkMods.length} mods to:`;
+    header.textContent = t('moveMods', { count: bulkMods.length });
     modContextCategories.appendChild(header);
   }
 
@@ -1916,7 +1916,7 @@ contextMenu.addEventListener('click', async (e) => {
 
   if (action === 'rename') {
     hideContextMenu();
-    const newName = await showInputModal('Category name:', cat.name);
+    const newName = await showInputModal(t('category.namePrompt'), cat.name);
     if (newName && newName.trim()) {
       cat.name = newName.trim();
       syncModCategories();
@@ -1975,7 +1975,7 @@ addCategoryBtn.addEventListener('click', () => {
 
   const title = document.createElement('div');
   title.className = 'modal-title';
-  title.textContent = 'New Category';
+  title.textContent = t('category.newTitle');
 
   const nameInput = document.createElement('input');
   nameInput.type = 'text';
@@ -1986,7 +1986,7 @@ addCategoryBtn.addEventListener('click', () => {
 
   const posLabel = document.createElement('div');
   posLabel.style.cssText = 'font-size:11px;color:#888;margin-bottom:4px;';
-  posLabel.textContent = 'Load in front of:';
+  posLabel.textContent = t('category.loadBefore');
 
   const posSelect = document.createElement('select');
   posSelect.className = 'modal-input';
@@ -2000,7 +2000,7 @@ addCategoryBtn.addEventListener('click', () => {
   }
   const endOpt = document.createElement('option');
   endOpt.value = '__end__';
-  endOpt.textContent = '(at the end)';
+  endOpt.textContent = t('category.atEnd');
   endOpt.selected = true;
   posSelect.appendChild(endOpt);
 
@@ -2008,10 +2008,10 @@ addCategoryBtn.addEventListener('click', () => {
   buttons.className = 'modal-buttons';
   const cancelBtn = document.createElement('button');
   cancelBtn.className = 'btn';
-  cancelBtn.textContent = 'Cancel';
+  cancelBtn.textContent = t('modal.cancel');
   const okBtn = document.createElement('button');
   okBtn.className = 'btn btn-primary';
-  okBtn.textContent = 'Create';
+  okBtn.textContent = t('modal.ok');
 
   buttons.append(cancelBtn, okBtn);
   box.append(title, nameInput, posLabel, posSelect, buttons);
@@ -2059,7 +2059,7 @@ addCategoryBtn.addEventListener('click', () => {
 
 const resetCategoriesBtn = document.getElementById('reset-categories-btn');
 resetCategoriesBtn.addEventListener('click', async () => {
-  const confirmed = await showConfirmModal('Reset all categories? All mods will move to Uncategorized and default categories will be restored.');
+  const confirmed = await showConfirmModal(t('confirm.resetCategories'));
   if (!confirmed) return;
 
   // Move all mods to uncategorized
@@ -2080,7 +2080,7 @@ resetCategoriesBtn.addEventListener('click', async () => {
   syncModCategories();
   persistConfig();
   renderColumns();
-  setStatus('Categories reset to defaults.', 'success');
+  setStatus(t('status.categoriesReset'), 'success');
 });
 
 // ===== Detail Panel Tabs =====
@@ -2142,7 +2142,7 @@ const savePackBtn = document.getElementById('save-pack-btn');
 const packsList = document.getElementById('packs-list');
 
 savePackBtn.addEventListener('click', async () => {
-  const name = await showInputModal('Save mod pack as:', '');
+  const name = await showInputModal(t('packs.savePrompt'), '');
   if (!name || !name.trim()) return;
 
   const pack = {
@@ -2155,7 +2155,7 @@ savePackBtn.addEventListener('click', async () => {
   };
 
   await window.api.savePack(pack);
-  setStatus(`Mod pack "${pack.name}" saved!`, 'success');
+  setStatus(t('status.packSaved', { name: pack.name }), 'success');
   refreshPacksList();
 });
 
@@ -2166,7 +2166,7 @@ async function refreshPacksList() {
   if (packs.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'detail-placeholder';
-    empty.textContent = 'No saved mod packs yet.';
+    empty.textContent = t('packs.noPacks');
     empty.style.marginTop = '20px';
     packsList.appendChild(empty);
     return;
@@ -2191,22 +2191,22 @@ async function refreshPacksList() {
 
     const loadBtn = document.createElement('button');
     loadBtn.className = 'btn btn-primary';
-    loadBtn.textContent = 'Load';
+    loadBtn.textContent = t('packs.load');
     loadBtn.addEventListener('click', async () => {
-      const confirmed = await showConfirmModal(`Load mod pack "${pack.name}"? This will replace your current categories and load order.`);
+      const confirmed = await showConfirmModal(t('confirm.loadPack', { name: pack.name }));
       if (!confirmed) return;
       applyPack(pack);
     });
 
     const delBtn = document.createElement('button');
     delBtn.className = 'btn btn-danger-subtle';
-    delBtn.textContent = 'Del';
+    delBtn.textContent = t('packs.del');
     delBtn.addEventListener('click', async () => {
-      const confirmed = await showConfirmModal(`Delete mod pack "${pack.name}"?`);
+      const confirmed = await showConfirmModal(t('confirm.deletePack', { name: pack.name }));
       if (!confirmed) return;
       await window.api.deletePack(pack.name);
       refreshPacksList();
-      setStatus(`Mod pack "${pack.name}" deleted.`, 'success');
+      setStatus(t('status.packDeleted', { name: pack.name }), 'success');
     });
 
     actions.append(loadBtn, delBtn);
@@ -2234,7 +2234,7 @@ async function applyPack(pack) {
 
   const activeCount = mods.filter((m) => m.active).length;
   modCount.textContent = `${mods.length} mods, ${activeCount} active`;
-  setStatus(`Mod pack "${pack.name}" loaded!`, 'success');
+  setStatus(t('status.packLoaded', { name: pack.name }), 'success');
 }
 
 // ===== AI Sort =====
@@ -2403,7 +2403,7 @@ function buildCurrentSortSection(sortedCats) {
 aiExportBtn.addEventListener('click', async () => {
   const activeMods = mods.filter((m) => m.active);
   if (activeMods.length === 0) {
-    setStatus('No active mods to export.', 'error');
+    setStatus(t('status.noModsExport'), 'error');
     return;
   }
 
@@ -2417,12 +2417,12 @@ aiExportBtn.addEventListener('click', async () => {
 
   const isUncatMode = choice === 'uncategorized' || choice === 'uncategorized-compact';
   if (isUncatMode && uncatMods.length === 0) {
-    setStatus('No uncategorized mods to sort — everything is already placed!', 'success');
+    setStatus(t('status.allSorted'), 'success');
     return;
   }
 
   const modsToDescribe = (choice === 'all' || choice === 'compact') ? activeMods : uncatMods;
-  setStatus(`Fetching Steam data for ${modsToDescribe.length} mods...`);
+  setStatus(t('status.fetchingSteam', { count: modsToDescribe.length }));
   aiExportBtn.disabled = true;
 
   const workshopIds = modsToDescribe
@@ -2444,7 +2444,7 @@ aiExportBtn.addEventListener('click', async () => {
 
     const filePath = await window.api.saveFileDialog('kenshi_ai_sort_batch_1.txt');
     if (!filePath) {
-      setStatus('Export cancelled.');
+      setStatus(t('status.exportCancelled'));
       aiExportBtn.disabled = false;
       return;
     }
@@ -2471,7 +2471,7 @@ aiExportBtn.addEventListener('click', async () => {
       await window.api.writeFile(batchPath, output);
     }
 
-    setStatus(`Exported ${modsToDescribe.length} mods across ${batches.length} batch files!`, 'success');
+    setStatus(t('status.exportedBatch', { mods: modsToDescribe.length, batches: batches.length }), 'success');
   } else {
     // === SINGLE FILE MODE ===
     let output = buildPromptHeader(catNames);
@@ -2521,12 +2521,12 @@ aiExportBtn.addEventListener('click', async () => {
 
     const filePath = await window.api.saveFileDialog('kenshi_ai_sort_prompt.txt');
     if (!filePath) {
-      setStatus('Export cancelled.');
+      setStatus(t('status.exportCancelled'));
       aiExportBtn.disabled = false;
       return;
     }
     await window.api.writeFile(filePath, output);
-    setStatus(`Exported ${modsToDescribe.length} mods to prompt file!`, 'success');
+    setStatus(t('status.exportedPrompt', { count: modsToDescribe.length }), 'success');
   }
 
   aiExportBtn.disabled = false;
@@ -2645,9 +2645,9 @@ function parseAndApplyAiResponse(text) {
   modCount.textContent = `${mods.length} mods, ${activeCount} active`;
 
   if (unmatched > 0) {
-    setStatus(`AI order applied: ${matched} mods sorted, ${unmatched} could not be matched.`, 'success');
+    setStatus(t('status.aiAppliedPartial', { matched, unmatched }), 'success');
   } else {
-    setStatus(`AI order applied: ${matched} mods sorted successfully!`, 'success');
+    setStatus(t('status.aiApplied', { matched }), 'success');
   }
 }
 
@@ -2680,11 +2680,11 @@ function updateDetailPanel() {
   }
 
   document.getElementById('detail-name').textContent = selectedMod.displayName;
-  document.getElementById('detail-author').textContent = selectedMod.author || 'Unknown';
-  document.getElementById('detail-version').textContent = selectedMod.version || 'N/A';
-  document.getElementById('detail-source').textContent = selectedMod.source === 'steam' ? 'Steam Workshop' : 'Local';
+  document.getElementById('detail-author').textContent = selectedMod.author || t('detail.unknown');
+  document.getElementById('detail-version').textContent = selectedMod.version || t('detail.na');
+  document.getElementById('detail-source').textContent = selectedMod.source === 'steam' ? t('detail.sourceStream') : t('detail.sourceLocal');
   document.getElementById('detail-path').textContent = selectedMod.filePath;
-  document.getElementById('detail-desc').textContent = selectedMod.description || 'No description available.';
+  document.getElementById('detail-desc').textContent = selectedMod.description || t('detail.noDescription');
 
   const depsRow = document.getElementById('detail-deps-row');
   const depsEl = document.getElementById('detail-deps');
@@ -2697,7 +2697,7 @@ function updateDetailPanel() {
       span.textContent = dep;
       if (!installed) {
         span.className = 'dep-missing';
-        span.title = 'Not installed!';
+        span.title = t('deps.notInstalledTooltip');
       }
       if (depsEl.childNodes.length > 0) depsEl.appendChild(document.createTextNode(', '));
       depsEl.appendChild(span);
@@ -2717,7 +2717,7 @@ function updateDetailPanel() {
       span.textContent = ref;
       if (!installed) {
         span.className = 'dep-missing';
-        span.title = 'Not installed!';
+        span.title = t('deps.notInstalledTooltip');
       }
       if (refsEl.childNodes.length > 0) refsEl.appendChild(document.createTextNode(', '));
       refsEl.appendChild(span);
@@ -2792,13 +2792,13 @@ function renderConflictsTab() {
   content.innerHTML = '';
 
   if (!conflictData) {
-    placeholder.textContent = 'Click "Check Conflicts" in the toolbar to scan your mods.';
+    placeholder.textContent = t('conflicts.clickCheck');
     placeholder.classList.remove('hidden');
     return;
   }
 
   if (!selectedMod) {
-    placeholder.textContent = 'Select a mod to view its conflicts.';
+    placeholder.textContent = t('conflicts.selectMod');
     placeholder.classList.remove('hidden');
     return;
   }
@@ -2811,7 +2811,7 @@ function renderConflictsTab() {
     title.textContent = `${selectedMod.displayName} — Conflicts`;
     const noConf = document.createElement('div');
     noConf.className = 'no-conflicts';
-    noConf.textContent = 'No conflicts detected for this mod.';
+    noConf.textContent = t('conflicts.noConflicts');
     content.appendChild(noConf);
     return;
   }
@@ -3096,10 +3096,47 @@ function ensureDefaultCategories() {
   }
 }
 
+// ===== Language Switching =====
+
+const setupLangSelect = document.getElementById('setup-language-select');
+const tutorialLangSelect = document.getElementById('tutorial-language-select');
+
+function syncLangSelects(locale) {
+  if (setupLangSelect) setupLangSelect.value = locale;
+  if (tutorialLangSelect) tutorialLangSelect.value = locale;
+}
+
+async function changeLanguage(locale) {
+  await setLocale(locale);
+  syncLangSelects(locale);
+  if (uncategorizedPinned) {
+    pinUncatBtn.textContent = t('toolbar.unpinUncat');
+  } else {
+    pinUncatBtn.textContent = t('toolbar.pinUncat');
+  }
+  if (config) {
+    config.language = locale;
+    persistConfig();
+  }
+}
+
+if (setupLangSelect) {
+  setupLangSelect.addEventListener('change', (e) => changeLanguage(e.target.value));
+}
+if (tutorialLangSelect) {
+  tutorialLangSelect.addEventListener('change', (e) => changeLanguage(e.target.value));
+}
+
 // ===== Init =====
 
 async function init() {
   config = await window.api.getConfig();
+
+  // Init i18n with saved language or default to English
+  const savedLang = (config && config.language) || 'en';
+  await initI18n(savedLang);
+  syncLangSelects(savedLang);
+
   if (config && config.gamePath) {
     categories = config.categories || [];
     modCategories = config.modCategories || {};
@@ -3107,7 +3144,7 @@ async function init() {
     uncategorizedPinned = config.uncategorizedPinned || false;
     if (uncategorizedPinned) {
       pinUncatBtn.classList.add('btn-pinned-active');
-      pinUncatBtn.textContent = 'Unpin Uncategorized';
+      pinUncatBtn.textContent = t('toolbar.unpinUncat');
     }
     // Default to Kenshi theme unless explicitly set to false
     if (config.kenshiTheme !== false) {
