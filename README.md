@@ -2,7 +2,7 @@
 
 **Beep Enhances Every Playthrough**
 
-A lightweight Electron-based mod load order manager for [Kenshi](https://store.steampowered.com/app/233860/Kenshi/). Organize your mods into categories, detect conflicts at every level, visualize them on the world map, and get AI-assisted sorting suggestions.
+A lightweight Electron-based mod load order manager for [Kenshi](https://store.steampowered.com/app/233860/Kenshi/). Works with both **Steam** and **GOG** installations. Organize your mods into categories, detect conflicts at every level, visualize them on the world map, and get AI-assisted sorting suggestions.
 
 [Steam Workshop Guide](https://steamcommunity.com/sharedfiles/filedetails/?id=3704937622)
 
@@ -18,9 +18,18 @@ A lightweight Electron-based mod load order manager for [Kenshi](https://store.s
 - **Preserved load order** — First launch respects your existing mods.cfg load order instead of alphabetical.
 
 ### Categories
-- **Add, rename, delete** — Create categories with the toolbar button. Right-click headers to rename, change color, or delete.
-- **Drag to reorder** — Drag category headers to reorder them. Load order follows category order.
+- **Click to rename** — Click category names directly to rename them.
+- **Inline controls** — Arrow buttons to reorder, color picker, collapse/expand, and delete on every header.
+- **Position picker** — Choose where new categories appear when creating them.
 - **Reset Categories** — Restore the default category set.
+
+### Dependency Detection
+- **Missing dependency warnings** — Mods with uninstalled dependencies are highlighted in red.
+- **Inactive dependency detection** — Dependencies that exist but are disabled are flagged.
+- **Load order validation** — Dependencies that load after the mods that need them are caught.
+- **Hover for details** — Hover over red-highlighted mods to see the specific dependency issue.
+- **Status bar alerts** — Summary of all dependency problems shown in the status bar, updated in real-time.
+- **Detail panel** — Missing dependencies shown in red in the Dependencies/References rows.
 
 ### Conflict Detection
 - **Deep conflict detection** — Parses .mod binary files, leveldata, and interior data to detect when multiple mods modify the same game data.
@@ -29,6 +38,7 @@ A lightweight Electron-based mod load order manager for [Kenshi](https://store.s
 - **Asset override detection** — Scans mod directories for file-level overrides (meshes, textures, sounds) where one mod's files replace another's.
 - **Level data parsing** — Deep-parses .level files to detect exterior (world placement) and interior (building layout) conflicts at the item/property level.
 - **Three-way conflict indicators** — Green (winning), red (overridden), and yellow (both overridden by a third mod).
+- **Focus mode** — Dims all non-conflicting mods to 15% opacity for easy identification.
 
 ### Interactive Conflict Map
 - **4K Kenshi world map** — Converted from the game's GUI map texture.
@@ -51,14 +61,15 @@ A lightweight Electron-based mod load order manager for [Kenshi](https://store.s
 - Supports Claude (recommended for large lists) and ChatGPT.
 
 ### Other Features
+- **Steam & GOG support** — Auto-detects Kenshi from Steam libraries, GOG Galaxy registry, and common install paths on all drives.
+- **Folder Setup** — Easily change or clear game paths from the toolbar or welcome screen.
 - **Kenshi & Dark themes** — Toggle between a warm Kenshi-inspired theme with grain texture and a dark grey theme.
 - **Built-in tutorial** — Full usage guide accessible from the Tutorial tab.
-- **Dependency warnings** — Highlights mods that load before their dependencies (orange) or after mods that need them (yellow).
-- **Steam auto-detection** — Automatically finds your Kenshi installation and Steam Workshop folder.
 - **Mod preview images** — Displays Steam Workshop thumbnails in the detail panel.
 - **Integrated browsing** — View mod Steam/Nexus pages, the Kenshi modding guide, and the Steam Workshop directly in the app.
 - **Auto-update** — Checks for updates on launch and notifies you with download links.
 - **Launch game** — Save your load order and launch Kenshi directly from the app.
+- **GitHub link** — Quick access to the project repository from the toolbar.
 
 ## Install
 
@@ -67,6 +78,8 @@ A lightweight Electron-based mod load order manager for [Kenshi](https://store.s
 1. Download the latest release from the [Releases](https://github.com/Derthi/BEEP-Kenshi-Mod-Manager/releases) page.
 2. Extract anywhere.
 3. Run `BEEP Kenshi Mod Manager.exe`.
+
+Works with both **Steam** and **GOG** versions of Kenshi. Windows 64-bit only.
 
 ### From source
 
@@ -89,6 +102,7 @@ Output is in `dist/win-unpacked/`.
 
 - Mods are discovered from `{GamePath}/Mods/` (local) and Steam Workshop (`steamapps/workshop/content/233860/`).
 - Mod metadata (author, description, dependencies) is read from the binary `.mod` file header.
+- Dependencies are matched using case-insensitive substring matching.
 - Conflict detection parses `.mod` files for data conflicts, `.level` files for world/interior conflicts, and scans directories for asset overrides.
 - Level data items with zone coordinates are mapped to the Kenshi world map for visual conflict display.
 - Load order is saved to `{GamePath}/data/mods.cfg` — the same file Kenshi reads.
