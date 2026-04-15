@@ -6,6 +6,8 @@ A lightweight Electron-based mod load order manager for [Kenshi](https://store.s
 
 [Steam Workshop Guide](https://steamcommunity.com/sharedfiles/filedetails/?id=3704937622)
 
+[Discord](https://discord.gg/QvFTmRKHSz)
+
 ## Features
 
 ### Mod Sorting
