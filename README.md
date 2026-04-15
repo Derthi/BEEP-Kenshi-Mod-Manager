@@ -2,7 +2,7 @@
 
 **Beep Enhances Every Playthrough**
 
-A lightweight Electron-based mod load order manager for [Kenshi](https://store.steampowered.com/app/233860/Kenshi/). Works with both **Steam** and **GOG** installations. Organize your mods into categories, detect conflicts at every level, visualize them on the world map, and get AI-assisted sorting suggestions.
+A Electron-based mod load order manager for [Kenshi](https://store.steampowered.com/app/233860/Kenshi/). Works with both **Steam** and **GOG** installations. Organize your mods into categories, detect conflicts at every level, visualize them on the world map, and get AI-assisted sorting suggestions.
 
 [Steam Workshop Guide](https://steamcommunity.com/sharedfiles/filedetails/?id=3704937622)
 
