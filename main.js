@@ -219,12 +219,17 @@ ipcMain.handle('show-in-folder', (_event, filePath) => {
 
 // Relaunch the app with admin privileges
 ipcMain.handle('relaunch-as-admin', () => {
-  const { exec } = require('child_process');
+  const { spawn } = require('child_process');
   const exePath = app.isPackaged ? app.getPath('exe') : process.argv[0];
-  const args = app.isPackaged ? [] : process.argv.slice(1);
-  exec(`powershell -Command "Start-Process '${exePath}' -ArgumentList '${args.join(' ')}' -Verb RunAs"`, (err) => {
-    if (!err) app.quit();
-  });
+  const psArgs = [
+    '-Command',
+    `Start-Process -FilePath "${exePath}" -Verb RunAs`
+  ];
+  const child = spawn('powershell.exe', psArgs, { detached: true, stdio: 'ignore' });
+  child.unref();
+  child.on('error', () => {}); // ignore spawn errors
+  // Give PowerShell a moment to launch the UAC prompt before quitting
+  setTimeout(() => app.quit(), 500);
 });
 
 // Symlink management for Steam mods → game Mods folder
