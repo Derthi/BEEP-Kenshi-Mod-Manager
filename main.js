@@ -167,9 +167,15 @@ ipcMain.handle('launch-fcs', (_event, gamePath) => {
   const fs = require('fs');
   const { spawn } = require('child_process');
 
-  const fcsPath = path.join(gamePath, 'forgotten construction set.exe');
-  if (!fs.existsSync(fcsPath)) {
-    return { success: false, error: 'Could not find "forgotten construction set.exe" in ' + gamePath };
+  // FCS executable name differs by store: Steam = "forgotten construction set.exe", GOG = "FCS_gog.exe"
+  const fcsCandidates = ['forgotten construction set.exe', 'FCS_gog.exe'];
+  let fcsPath = null;
+  for (const name of fcsCandidates) {
+    const candidate = path.join(gamePath, name);
+    if (fs.existsSync(candidate)) { fcsPath = candidate; break; }
+  }
+  if (!fcsPath) {
+    return { success: false, error: 'Could not find the FCS executable (forgotten construction set.exe or FCS_gog.exe) in ' + gamePath };
   }
 
   if (process.platform === 'linux') {
