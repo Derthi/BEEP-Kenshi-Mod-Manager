@@ -13,6 +13,10 @@ let lastClickedMod = null; // for shift-click range select
 let uncategorizedPinned = false;
 let tutorialDismissed = false;
 let minimizedCategories = new Set();
+const DEFAULT_MAP_ZOOM_SPEED = 0.1;       // half of the original 0.2 per wheel notch
+const DEFAULT_COLUMN_SCROLL_SPEED = 0.5;  // half of the original 1.0x deltaY
+let mapZoomSpeed = DEFAULT_MAP_ZOOM_SPEED;
+let columnScrollSpeed = DEFAULT_COLUMN_SCROLL_SPEED;
 let justMovedMods = new Set();
 let linkedMods = new Set(); // steam mods with active symlinks in game folder
 
@@ -408,7 +412,7 @@ document.addEventListener('mouseup', () => {
 columnsContainer.addEventListener('wheel', (e) => {
   if (!verticalLayout) {
     e.preventDefault();
-    columnsContainer.scrollLeft += e.deltaY;
+    columnsContainer.scrollLeft += e.deltaY * columnScrollSpeed;
   }
 }, { passive: false });
 
@@ -798,12 +802,61 @@ const updateModal = document.getElementById('update-modal');
 const updateDismissBtn = document.getElementById('update-dismiss-btn');
 updateDismissBtn.addEventListener('click', () => updateModal.classList.add('hidden'));
 
+// Strip simple inline markdown so release notes render safely as plain text.
+function stripInlineMd(s) {
+  return s
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+}
+
+// Render GitHub release notes (markdown) as a tidy list. Uses textContent only — no HTML injection.
+function renderUpdateNotes(body, container) {
+  if (!container) return;
+  container.innerHTML = '';
+  if (!body || !body.trim()) { container.classList.add('hidden'); return; }
+  const title = document.createElement('div');
+  title.className = 'update-changes-title';
+  title.textContent = t('update.whatsNew');
+  container.appendChild(title);
+  let ul = null;
+  for (const raw of body.replace(/\r\n/g, '\n').split('\n')) {
+    const line = raw.trim();
+    if (!line) { ul = null; continue; }
+    const bullet = line.match(/^[-*]\s+(.*)$/);
+    const head = line.match(/^#{1,6}\s+(.*)$/);
+    if (bullet) {
+      if (!ul) { ul = document.createElement('ul'); ul.className = 'update-changes-list'; container.appendChild(ul); }
+      const li = document.createElement('li');
+      li.textContent = stripInlineMd(bullet[1]);
+      ul.appendChild(li);
+    } else if (head) {
+      ul = null;
+      const h = document.createElement('div');
+      h.className = 'update-changes-subhead';
+      h.textContent = stripInlineMd(head[1]);
+      container.appendChild(h);
+    } else {
+      ul = null;
+      const p = document.createElement('div');
+      p.className = 'update-changes-line';
+      p.textContent = stripInlineMd(line);
+      container.appendChild(p);
+    }
+  }
+  container.classList.remove('hidden');
+}
+
 async function autoCheckForUpdate() {
   const info = await window.api.checkForUpdate();
   if (!info || !info.hasUpdate) return;
 
   document.getElementById('update-version-text').textContent =
     `v${info.currentVersion} → v${info.latestVersion}`;
+
+  renderUpdateNotes(info.body, document.getElementById('update-changes'));
 
   const downloadLink = document.getElementById('update-download-link');
   const githubLink = document.getElementById('update-github-link');
@@ -821,9 +874,64 @@ async function autoCheckForUpdate() {
   updateModal.classList.remove('hidden');
 }
 
+// ===== Settings Modal =====
+
+const appSettingsBtn = document.getElementById('app-settings-btn');
+const appSettingsModal = document.getElementById('app-settings-modal');
+const settingsCloseBtn = document.getElementById('settings-close-btn');
+const settingsResetBtn = document.getElementById('settings-reset-btn');
+const setMapZoom = document.getElementById('set-map-zoom');
+const setMapZoomVal = document.getElementById('set-map-zoom-val');
+const setColScroll = document.getElementById('set-col-scroll');
+const setColScrollVal = document.getElementById('set-col-scroll-val');
+
+function syncSettingsUI() {
+  setMapZoom.value = mapZoomSpeed;
+  setColScroll.value = columnScrollSpeed;
+  setMapZoomVal.textContent = Number(mapZoomSpeed).toFixed(2);
+  setColScrollVal.textContent = Number(columnScrollSpeed).toFixed(2) + '×';
+}
+
+appSettingsBtn.addEventListener('click', () => {
+  syncSettingsUI();
+  appSettingsModal.classList.remove('hidden');
+});
+settingsCloseBtn.addEventListener('click', () => appSettingsModal.classList.add('hidden'));
+appSettingsModal.addEventListener('click', (e) => {
+  if (e.target === appSettingsModal) appSettingsModal.classList.add('hidden');
+});
+
+// Live feedback on drag; persist only when the drag ends (avoids hammering the config file).
+setMapZoom.addEventListener('input', () => {
+  mapZoomSpeed = parseFloat(setMapZoom.value);
+  setMapZoomVal.textContent = mapZoomSpeed.toFixed(2);
+});
+setMapZoom.addEventListener('change', () => {
+  config.mapZoomSpeed = mapZoomSpeed;
+  persistConfig();
+});
+setColScroll.addEventListener('input', () => {
+  columnScrollSpeed = parseFloat(setColScroll.value);
+  setColScrollVal.textContent = columnScrollSpeed.toFixed(2) + '×';
+});
+setColScroll.addEventListener('change', () => {
+  config.columnScrollSpeed = columnScrollSpeed;
+  persistConfig();
+});
+
+settingsResetBtn.addEventListener('click', () => {
+  mapZoomSpeed = DEFAULT_MAP_ZOOM_SPEED;
+  columnScrollSpeed = DEFAULT_COLUMN_SCROLL_SPEED;
+  config.mapZoomSpeed = mapZoomSpeed;
+  config.columnScrollSpeed = columnScrollSpeed;
+  syncSettingsUI();
+  persistConfig();
+});
+
 // ===== Zone Map Modal =====
 
 const zoneMapModal = document.getElementById('zone-map-modal');
+const zoneMapTitle = document.getElementById('zone-map-title');
 const zoneMapClose = document.getElementById('zone-map-close');
 const zoneMapContainer = document.getElementById('zone-map-container');
 const zoneMapWrapper = document.getElementById('zone-map-wrapper');
@@ -832,6 +940,7 @@ const zoneMapOverlays = document.getElementById('zone-map-overlays');
 const zoneSidebarList = document.getElementById('zone-sidebar-list');
 const zoneShowAllBtn = document.getElementById('zone-show-all-btn');
 const zoneLayerBtn = document.getElementById('zone-layer-btn');
+const zoneModeBtn = document.getElementById('zone-mode-btn');
 const mapBtn = document.getElementById('map-btn');
 
 let mapScale = 1;
@@ -844,6 +953,10 @@ let selectedZoneKey = null;
 let zoneLayer = 'exterior'; // 'exterior' or 'interior'
 let zoneConflicts = []; // [{ key, zx, zy, mods: [{ filename, winner }] }]
 let allZoneConflicts = { exterior: [], interior: [] };
+let mapMode = 'conflicts'; // 'conflicts' | 'edits'
+let selectedEditMod = null; // .mod filename selected in "All Edits" mode
+let selectedEditZoneKey = null; // "zx,zy" of the clicked edit zone
+let allModEdits = {}; // conflictData.perModEdits: { modFile: { exterior:[], interior:[], extZoneCount, intZoneCount } }
 
 zoneMapClose.addEventListener('click', () => zoneMapModal.classList.add('hidden'));
 zoneMapModal.addEventListener('click', (e) => {
@@ -899,6 +1012,7 @@ function openZoneMap(focusZone) {
   allZoneConflicts.exterior = sortZones(layers.exterior);
   allZoneConflicts.interior = sortZones(layers.interior);
   zoneConflicts = allZoneConflicts[zoneLayer];
+  allModEdits = conflictData.perModEdits || {};
 
   // Reset view
   mapScale = 1;
@@ -915,6 +1029,15 @@ function openZoneMap(focusZone) {
   zoneLayer = 'exterior';
   zoneShowAllBtn.textContent = t('zoneMap.hideAll');
   zoneLayerBtn.textContent = t('zoneMap.exterior');
+
+  // Always open in Conflicts mode (keeps the conflict-tab "show on map" focus path unchanged)
+  mapMode = 'conflicts';
+  selectedEditMod = null;
+  selectedEditZoneKey = null;
+  zoneModeBtn.textContent = t('zoneMap.modeEdits');
+  if (zoneMapTitle) zoneMapTitle.textContent = t('zoneMap.title');
+  const sidebarTitleEl = document.querySelector('#zone-map-sidebar .zone-sidebar-title');
+  if (sidebarTitleEl) sidebarTitleEl.textContent = t('zoneMap.sidebarTitle');
 
   zoneMapModal.classList.remove('hidden');
 
@@ -954,6 +1077,8 @@ function renderZoneOverlays() {
   const zoneW = imgW / 64;
   const zoneH = imgH / 64;
 
+  if (mapMode === 'edits') { renderEditOverlays(zoneW, zoneH); return; }
+
   for (const zc of zoneConflicts) {
     const zcKey = `${zc.zx},${zc.zy}`;
     if (!showAllZones && zcKey !== selectedZoneKey) continue;
@@ -979,6 +1104,8 @@ function renderZoneOverlays() {
 
 function renderZoneSidebar() {
   zoneSidebarList.innerHTML = '';
+
+  if (mapMode === 'edits') { renderEditModSidebar(); return; }
 
   if (zoneConflicts.length === 0) {
     const empty = document.createElement('div');
@@ -1098,18 +1225,7 @@ function selectZone(key) {
 
   // Pan map to center the selected zone
   const zc = zoneConflicts.find((z) => `${z.zx},${z.zy}` === key);
-  if (zc) {
-    const imgW = zoneMapImg.clientWidth;
-    const imgH = zoneMapImg.clientHeight;
-    const containerW = zoneMapContainer.clientWidth;
-    const containerH = zoneMapContainer.clientHeight;
-    const zoneW = imgW / 64;
-    const zoneH = imgH / 64;
-    const centerX = (zc.zx + 0.5) * zoneW - containerW / 2;
-    const centerY = (zc.zy + 0.5) * zoneH - containerH / 2;
-    zoneMapContainer.scrollLeft = Math.max(0, centerX);
-    zoneMapContainer.scrollTop = Math.max(0, centerY);
-  }
+  if (zc) panToZone(zc.zx, zc.zy);
 
   // Expand the parent mod group and scroll sidebar to the active item
   const activeItem = zoneSidebarList.querySelector('.zone-conflict-item.active');
@@ -1124,6 +1240,131 @@ function selectZone(key) {
   }
 }
 
+// Center the map viewport on a zone (shared by conflicts + edits modes)
+function panToZone(zx, zy) {
+  const imgW = zoneMapImg.clientWidth;
+  const imgH = zoneMapImg.clientHeight;
+  const containerW = zoneMapContainer.clientWidth;
+  const containerH = zoneMapContainer.clientHeight;
+  const zoneW = imgW / 64;
+  const zoneH = imgH / 64;
+  const centerX = (zx + 0.5) * zoneW - containerW / 2;
+  const centerY = (zy + 0.5) * zoneH - containerH / 2;
+  zoneMapContainer.scrollLeft = Math.max(0, centerX);
+  zoneMapContainer.scrollTop = Math.max(0, centerY);
+}
+
+// ===== "All Edits" mode (per-mod level edits) =====
+
+function renderEditModSidebar() {
+  const modFiles = Object.keys(allModEdits)
+    .filter((mf) => (allModEdits[mf][zoneLayer] || []).length > 0)
+    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+  if (modFiles.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'zone-no-conflicts';
+    empty.textContent = t('zoneMap.noEdits', { layer: zoneLayer });
+    zoneSidebarList.appendChild(empty);
+    return;
+  }
+
+  if (!selectedEditMod) {
+    const hint = document.createElement('div');
+    hint.className = 'zone-edit-hint';
+    hint.textContent = t('zoneMap.selectModHint');
+    zoneSidebarList.appendChild(hint);
+  }
+
+  for (const mf of modFiles) {
+    const zones = allModEdits[mf][zoneLayer] || [];
+
+    const item = document.createElement('div');
+    item.className = 'zone-conflict-item';
+    if (mf === selectedEditMod) item.classList.add('active');
+
+    const name = document.createElement('span');
+    name.className = 'zone-conflict-name';
+    name.textContent = mf.replace(/\.mod$/i, '');
+
+    const count = document.createElement('span');
+    count.className = 'zone-conflict-count';
+    count.textContent = t('zoneMap.zones', { count: zones.length });
+
+    item.append(name, count);
+    item.addEventListener('click', () => selectEditMod(mf));
+    zoneSidebarList.appendChild(item);
+
+    // Detail panel for the clicked zone, shown under its selected mod
+    if (mf === selectedEditMod && selectedEditZoneKey) {
+      const zone = zones.find((z) => `${z.zx},${z.zy}` === selectedEditZoneKey);
+      if (zone) {
+        const detail = document.createElement('div');
+        detail.className = 'zone-conflict-detail';
+
+        const head = document.createElement('div');
+        head.style.cssText = 'font-size:9px;color:#888;padding-bottom:2px;';
+        head.textContent = t('zoneMap.editsInZone', { x: zone.zx, y: zone.zy, count: zone.itemCount });
+        detail.appendChild(head);
+
+        for (const it of zone.items) {
+          const row = document.createElement('div');
+          row.style.cssText = 'font-size:9px;color:#999;padding:1px 0 1px 6px;';
+          row.textContent = `${it.name} → ${it.prop}`;
+          detail.appendChild(row);
+        }
+        if (zone.itemCount > zone.items.length) {
+          const more = document.createElement('div');
+          more.style.cssText = 'font-size:9px;color:#666;padding:1px 0 1px 6px;';
+          more.textContent = t('zoneMap.andMore', { count: zone.itemCount - zone.items.length });
+          detail.appendChild(more);
+        }
+        zoneSidebarList.appendChild(detail);
+      }
+    }
+  }
+}
+
+function renderEditOverlays(zoneW, zoneH) {
+  if (!selectedEditMod) return;
+  const zones = (allModEdits[selectedEditMod] || {})[zoneLayer] || [];
+  for (const z of zones) {
+    const zKey = `${z.zx},${z.zy}`;
+    const el = document.createElement('div');
+    el.className = 'zone-map-edit';
+    if (zKey === selectedEditZoneKey) el.classList.add('selected');
+    el.style.left = (z.zx * zoneW) + 'px';
+    el.style.top = (z.zy * zoneH) + 'px';
+    el.style.width = zoneW + 'px';
+    el.style.height = zoneH + 'px';
+
+    const label = document.createElement('div');
+    label.className = 'zone-map-label';
+    label.textContent = `${z.zx},${z.zy} (${z.itemCount})`;
+    el.appendChild(label);
+
+    el.addEventListener('click', () => selectEditZone(z.zx, z.zy));
+    zoneMapOverlays.appendChild(el);
+  }
+}
+
+function selectEditMod(mf) {
+  selectedEditMod = mf;
+  selectedEditZoneKey = null;
+  renderZoneOverlays();
+  renderZoneSidebar();
+  const zones = (allModEdits[mf] || {})[zoneLayer] || [];
+  if (zones.length) panToZone(zones[0].zx, zones[0].zy);
+}
+
+function selectEditZone(zx, zy) {
+  selectedEditZoneKey = `${zx},${zy}`;
+  renderZoneOverlays();
+  renderZoneSidebar();
+  const activeItem = zoneSidebarList.querySelector('.zone-conflict-item.active');
+  if (activeItem) activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 // Show All toggle
 zoneShowAllBtn.addEventListener('click', () => {
   showAllZones = !showAllZones;
@@ -1135,8 +1376,26 @@ zoneShowAllBtn.addEventListener('click', () => {
 zoneLayerBtn.addEventListener('click', () => {
   zoneLayer = zoneLayer === 'exterior' ? 'interior' : 'exterior';
   zoneLayerBtn.textContent = zoneLayer === 'exterior' ? t('zoneMap.exterior') : t('zoneMap.interior');
-  zoneConflicts = allZoneConflicts[zoneLayer];
+  if (mapMode === 'edits') {
+    selectedEditZoneKey = null; // keep the selected mod; redraw its zones for the new layer
+  } else {
+    zoneConflicts = allZoneConflicts[zoneLayer];
+    selectedZoneKey = null;
+  }
+  renderZoneOverlays();
+  renderZoneSidebar();
+});
+
+// Mode toggle (Conflicts / All Edits)
+zoneModeBtn.addEventListener('click', () => {
+  mapMode = mapMode === 'conflicts' ? 'edits' : 'conflicts';
+  zoneModeBtn.textContent = mapMode === 'conflicts' ? t('zoneMap.modeEdits') : t('zoneMap.modeConflicts');
+  if (zoneMapTitle) zoneMapTitle.textContent = mapMode === 'conflicts' ? t('zoneMap.title') : t('zoneMap.titleEdits');
+  const titleEl = document.querySelector('#zone-map-sidebar .zone-sidebar-title');
+  if (titleEl) titleEl.textContent = mapMode === 'conflicts' ? t('zoneMap.sidebarTitle') : t('zoneMap.sidebarEditsTitle');
   selectedZoneKey = null;
+  selectedEditMod = null;
+  selectedEditZoneKey = null;
   renderZoneOverlays();
   renderZoneSidebar();
 });
@@ -1144,7 +1403,7 @@ zoneLayerBtn.addEventListener('click', () => {
 // Zoom via mouse wheel
 zoneMapContainer.addEventListener('wheel', (e) => {
   e.preventDefault();
-  const delta = e.deltaY > 0 ? -0.2 : 0.2;
+  const delta = e.deltaY > 0 ? -mapZoomSpeed : mapZoomSpeed;
   const oldScale = mapScale;
   mapScale = Math.max(0.5, Math.min(6, mapScale + delta));
 
@@ -1164,7 +1423,7 @@ zoneMapContainer.addEventListener('wheel', (e) => {
 
 // Pan via mouse drag
 zoneMapContainer.addEventListener('mousedown', (e) => {
-  if (e.target.classList.contains('zone-map-highlight') || e.target.classList.contains('zone-map-label')) return;
+  if (e.target.classList.contains('zone-map-highlight') || e.target.classList.contains('zone-map-edit') || e.target.classList.contains('zone-map-label')) return;
   mapDragging = true;
   mapDragStartX = e.clientX;
   mapDragStartY = e.clientY;
@@ -3421,6 +3680,8 @@ async function init() {
     categories = config.categories || [];
     modCategories = config.modCategories || {};
     modOrders = config.modOrders || {};
+    if (typeof config.mapZoomSpeed === 'number') mapZoomSpeed = config.mapZoomSpeed;
+    if (typeof config.columnScrollSpeed === 'number') columnScrollSpeed = config.columnScrollSpeed;
     uncategorizedPinned = config.uncategorizedPinned || false;
     if (uncategorizedPinned) {
       pinUncatBtn.classList.add('btn-pinned-active');

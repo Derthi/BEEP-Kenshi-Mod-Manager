@@ -113,6 +113,7 @@
   "conflicts.modConflictsWith": "{mod} — {count}개 모드와 충돌",
 
   "zoneMap.title": "구역 충돌 맵",
+  "zoneMap.titleEdits": "All Map Edits",
   "zoneMap.exterior": "외부",
   "zoneMap.interior": "내부",
   "zoneMap.showAll": "모든 구역 표시",
@@ -125,6 +126,12 @@
   "zoneMap.properties": "{count}개 충돌 속성:",
   "zoneMap.andMore": "...외 {count}개 더",
   "zoneMap.clickToView": "클릭하여 맵에서 보기",
+  "zoneMap.modeConflicts": "Conflicts",
+  "zoneMap.modeEdits": "All Edits",
+  "zoneMap.sidebarEditsTitle": "Mods with Map Edits",
+  "zoneMap.noEdits": "No {layer} edits found.",
+  "zoneMap.selectModHint": "Select a mod to view its edits",
+  "zoneMap.editsInZone": "Zone {x},{y} — {count} edits",
 
   "tutorial.heading": "Beep!",
   "tutorial.welcome": "BEEP Kenshi 모드 매니저에 오신 것을 환영합니다",
@@ -153,8 +160,15 @@
   "tutorial.aiSortTitle": "AI Sort",
 
   "update.title": "업데이트 가능!",
+  "update.whatsNew": "What's new",
   "update.download": "업데이트 다운로드",
   "update.viewGithub": "GitHub에서 보기",
+  "settings.title": "Settings",
+  "settings.tooltip": "Settings",
+  "settings.mapZoomSpeed": "Map zoom speed",
+  "settings.columnScrollSpeed": "Column scroll speed",
+  "settings.reset": "Reset to defaults",
+  "settings.close": "Close",
 
   "aiGuide.title": "AI Sort 가이드",
   "aiGuide.whatIs": "AI Sort란?",

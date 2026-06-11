@@ -113,6 +113,7 @@
   "conflicts.modConflictsWith": "{mod} — 与 {count} 个模组冲突",
 
   "zoneMap.title": "区域冲突地图",
+  "zoneMap.titleEdits": "All Map Edits",
   "zoneMap.exterior": "室外",
   "zoneMap.interior": "室内",
   "zoneMap.showAll": "显示所有区域",
@@ -125,6 +126,12 @@
   "zoneMap.properties": "{count} 个冲突属性：",
   "zoneMap.andMore": "...以及 {count} 个更多",
   "zoneMap.clickToView": "点击在地图上查看",
+  "zoneMap.modeConflicts": "Conflicts",
+  "zoneMap.modeEdits": "All Edits",
+  "zoneMap.sidebarEditsTitle": "Mods with Map Edits",
+  "zoneMap.noEdits": "No {layer} edits found.",
+  "zoneMap.selectModHint": "Select a mod to view its edits",
+  "zoneMap.editsInZone": "Zone {x},{y} — {count} edits",
 
   "tutorial.heading": "Beep!",
   "tutorial.welcome": "欢迎使用 BEEP Kenshi 模组管理器",
@@ -212,8 +219,15 @@
   "aiExport.splitDesc": "导出多个文件，每个包含约 50 个模组（附完整描述）。需分别通过 AI 处理。最准确但最繁琐。",
 
   "update.title": "有可用更新！",
+  "update.whatsNew": "What's new",
   "update.download": "下载更新",
   "update.viewGithub": "在 GitHub 上查看",
+  "settings.title": "Settings",
+  "settings.tooltip": "Settings",
+  "settings.mapZoomSpeed": "Map zoom speed",
+  "settings.columnScrollSpeed": "Column scroll speed",
+  "settings.reset": "Reset to defaults",
+  "settings.close": "Close",
 
   "aiGuide.title": "AI Sort 指南",
   "aiGuide.whatIs": "什么是 AI Sort？",

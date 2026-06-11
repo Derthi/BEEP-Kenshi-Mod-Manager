@@ -113,6 +113,7 @@
   "conflicts.modConflictsWith": "{mod} — conflita com {count} mods",
 
   "zoneMap.title": "Mapa de Conflitos por Zona",
+  "zoneMap.titleEdits": "All Map Edits",
   "zoneMap.exterior": "Exterior",
   "zoneMap.interior": "Interior",
   "zoneMap.showAll": "Mostrar Todas as Zonas",
@@ -125,6 +126,12 @@
   "zoneMap.properties": "{count} propriedades conflitantes:",
   "zoneMap.andMore": "...e mais {count}",
   "zoneMap.clickToView": "Clique para ver no mapa",
+  "zoneMap.modeConflicts": "Conflicts",
+  "zoneMap.modeEdits": "All Edits",
+  "zoneMap.sidebarEditsTitle": "Mods with Map Edits",
+  "zoneMap.noEdits": "No {layer} edits found.",
+  "zoneMap.selectModHint": "Select a mod to view its edits",
+  "zoneMap.editsInZone": "Zone {x},{y} — {count} edits",
 
   "tutorial.heading": "Beep!",
   "tutorial.welcome": "Bem-vindo ao BEEP Kenshi Mod Manager",
@@ -153,8 +160,15 @@
   "tutorial.aiSortTitle": "AI Sort",
 
   "update.title": "Atualização Disponível!",
+  "update.whatsNew": "What's new",
   "update.download": "Baixar Atualização",
   "update.viewGithub": "Ver no GitHub",
+  "settings.title": "Settings",
+  "settings.tooltip": "Settings",
+  "settings.mapZoomSpeed": "Map zoom speed",
+  "settings.columnScrollSpeed": "Column scroll speed",
+  "settings.reset": "Reset to defaults",
+  "settings.close": "Close",
 
   "aiGuide.title": "Guia do AI Sort",
   "aiGuide.whatIs": "O que é o AI Sort?",

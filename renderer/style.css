@@ -1809,6 +1809,104 @@ body.kenshi-theme .update-version {
   color: #baa888;
 }
 
+.update-changes {
+  text-align: left;
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  background: #16161a;
+  border: 1px solid #2a2a2e;
+  border-radius: 6px;
+}
+
+.update-changes-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8ab4f8;
+  margin-bottom: 6px;
+}
+
+.update-changes-subhead {
+  font-weight: 600;
+  font-size: 12px;
+  color: #ddd;
+  margin: 6px 0 2px;
+}
+
+.update-changes-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.update-changes-list li,
+.update-changes-line {
+  font-size: 12px;
+  color: #cfcfcf;
+  margin: 3px 0;
+  line-height: 1.4;
+}
+
+body.kenshi-theme .update-changes {
+  background: #342a1e;
+  border-color: #6a5a45;
+}
+
+body.kenshi-theme .update-changes-title,
+body.kenshi-theme .update-changes-subhead {
+  color: #f4e4c4;
+}
+
+body.kenshi-theme .update-changes-list li,
+body.kenshi-theme .update-changes-line {
+  color: #e0d4be;
+}
+
+/* ===== Settings Modal ===== */
+.app-settings-modal {
+  min-width: 400px;
+}
+
+.app-settings-modal h3 {
+  margin-bottom: 16px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.setting-row label {
+  flex: 1;
+  font-size: 13px;
+  color: #ccc;
+}
+
+.setting-row input[type="range"] {
+  flex: 1.1;
+  cursor: pointer;
+}
+
+.setting-value {
+  width: 48px;
+  text-align: right;
+  font-size: 12px;
+  color: #8ab4f8;
+  font-variant-numeric: tabular-nums;
+}
+
+body.kenshi-theme .setting-row label {
+  color: #e0d4be;
+}
+
+body.kenshi-theme .setting-value {
+  color: #f4e4c4;
+}
+
 /* ===== Tutorial Guide ===== */
 .tutorial-guide {
   padding: 14px;
@@ -1968,6 +2066,39 @@ body.kenshi-theme .tutorial-divider {
 
 .zone-map-highlight.selected .zone-map-label {
   color: #f1c40f;
+}
+
+/* "All Edits" mode overlays (teal, distinct from conflict red) */
+.zone-map-edit {
+  position: absolute;
+  border: 2px solid #2ec6b0;
+  background: rgba(46, 198, 176, 0.18);
+  box-shadow: 0 0 8px rgba(46, 198, 176, 0.4);
+  border-radius: 1px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.zone-map-edit.selected {
+  border-color: #f1c40f;
+  background: rgba(241, 196, 15, 0.25);
+  box-shadow: 0 0 12px rgba(241, 196, 15, 0.5);
+  z-index: 1;
+}
+
+.zone-map-edit .zone-map-label {
+  color: #2ec6b0;
+}
+
+.zone-map-edit.selected .zone-map-label {
+  color: #f1c40f;
+}
+
+.zone-edit-hint {
+  font-size: 10px;
+  color: #888;
+  padding: 8px 10px;
+  font-style: italic;
 }
 
 /* Sidebar */

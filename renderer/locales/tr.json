@@ -113,6 +113,7 @@
   "conflicts.modConflictsWith": "{mod} — {count} mod ile çakışıyor",
 
   "zoneMap.title": "Bölge Çakışma Haritası",
+  "zoneMap.titleEdits": "All Map Edits",
   "zoneMap.exterior": "Dış Mekan",
   "zoneMap.interior": "İç Mekan",
   "zoneMap.showAll": "Tüm Bölgeleri Göster",
@@ -125,6 +126,12 @@
   "zoneMap.properties": "{count} çakışan özellik:",
   "zoneMap.andMore": "...ve {count} tane daha",
   "zoneMap.clickToView": "Haritada görüntülemek için tıklayın",
+  "zoneMap.modeConflicts": "Conflicts",
+  "zoneMap.modeEdits": "All Edits",
+  "zoneMap.sidebarEditsTitle": "Mods with Map Edits",
+  "zoneMap.noEdits": "No {layer} edits found.",
+  "zoneMap.selectModHint": "Select a mod to view its edits",
+  "zoneMap.editsInZone": "Zone {x},{y} — {count} edits",
 
   "tutorial.heading": "Beep!",
   "tutorial.welcome": "BEEP Kenshi Mod Yöneticisi'ne Hoş Geldiniz",
@@ -153,8 +160,15 @@
   "tutorial.aiSortTitle": "AI Sort",
 
   "update.title": "Güncelleme Mevcut!",
+  "update.whatsNew": "What's new",
   "update.download": "Güncellemeyi İndir",
   "update.viewGithub": "GitHub'da Görüntüle",
+  "settings.title": "Settings",
+  "settings.tooltip": "Settings",
+  "settings.mapZoomSpeed": "Map zoom speed",
+  "settings.columnScrollSpeed": "Column scroll speed",
+  "settings.reset": "Reset to defaults",
+  "settings.close": "Close",
 
   "aiGuide.title": "AI Sort Rehberi",
   "aiGuide.whatIs": "AI Sort nedir?",
