@@ -516,6 +516,17 @@ document.getElementById('fcs-btn').addEventListener('click', async () => {
   }
 });
 
+// Mods Folder button — open game Mods directory
+document.getElementById('mods-folder-btn').addEventListener('click', async () => {
+  setStatus(t('status.openingModsFolder'));
+  const result = await window.api.openModsFolder(config.gamePath);
+  if (result.success) {
+    setStatus(t('status.modsFolderOpened'), 'success');
+  } else {
+    setStatus(t('status.modsFolderError', { error: result.error }), 'error');
+  }
+});
+
 // Link All — create symlinks for all Steam mods
 document.getElementById('link-all-btn').addEventListener('click', async () => {
   const steamMods = mods.filter(m => m.source === 'steam' && !linkedMods.has(m.filename));

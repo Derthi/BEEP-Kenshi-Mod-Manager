@@ -192,6 +192,26 @@ ipcMain.handle('launch-fcs', (_event, gamePath) => {
   return { success: true };
 });
 
+// Open the game's local Mods folder in the file explorer
+ipcMain.handle('open-mods-folder', async (_event, gamePath) => {
+  const fs = require('fs');
+  // Kenshi's folder is "mods" (lowercase); resolve case-insensitively so it works on Linux too
+  let modsDir = path.join(gamePath, 'Mods');
+  if (!fs.existsSync(modsDir)) {
+    try {
+      const match = fs.readdirSync(gamePath, { withFileTypes: true })
+        .find((e) => e.isDirectory() && e.name.toLowerCase() === 'mods');
+      if (match) modsDir = path.join(gamePath, match.name);
+    } catch { /* gamePath missing or unreadable */ }
+  }
+  if (!fs.existsSync(modsDir)) {
+    return { success: false, error: 'Mods folder not found in ' + gamePath };
+  }
+  const err = await shell.openPath(modsDir);
+  if (err) return { success: false, error: err };
+  return { success: true };
+});
+
 // Conflict detection
 ipcMain.handle('generate-conflicts', (_event, activeMods, gamePath) => {
   return conflictDetector.detectConflicts(activeMods, gamePath);

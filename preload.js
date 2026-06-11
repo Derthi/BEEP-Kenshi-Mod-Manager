@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('api', {
   downloadUpdate: (url) => ipcRenderer.invoke('download-update', url),
   launchGame: (gamePath) => ipcRenderer.invoke('launch-game', gamePath),
   launchFcs: (gamePath) => ipcRenderer.invoke('launch-fcs', gamePath),
+  openModsFolder: (gamePath) => ipcRenderer.invoke('open-mods-folder', gamePath),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
   showInFolder: (filePath) => ipcRenderer.invoke('show-in-folder', filePath),
   checkModLinks: (data) => ipcRenderer.invoke('check-mod-links', data),
