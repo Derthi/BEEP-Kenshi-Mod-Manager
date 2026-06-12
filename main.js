@@ -7,6 +7,7 @@ const steamDetect = require('./lib/steam-detect');
 const steamApi = require('./lib/steam-api');
 const conflictDetector = require('./lib/conflict-detector');
 const updater = require('./lib/updater');
+const zoneDiff = require('./lib/zone-diff');
 
 let mainWindow;
 
@@ -215,6 +216,18 @@ ipcMain.handle('open-mods-folder', async (_event, gamePath) => {
 // Conflict detection
 ipcMain.handle('generate-conflicts', (_event, activeMods, gamePath) => {
   return conflictDetector.detectConflicts(activeMods, gamePath);
+});
+
+// Object-level diff of a mod's edited sector against the base game (lazy — on sector click)
+ipcMain.handle('diff-sector', (_event, zonePath, gamePath, zx, zy) => {
+  try { return zoneDiff.diffSector(zonePath, gamePath, zx, zy); }
+  catch { return null; }
+});
+
+// Object-level overlap between the mods that contest the same sector (lazy — on conflict-zone click)
+ipcMain.handle('diff-sector-conflict', (_event, zonePathsByMod, gamePath, zx, zy) => {
+  try { return zoneDiff.diffSectorConflict(zonePathsByMod, gamePath, zx, zy); }
+  catch { return null; }
 });
 
 // Updater

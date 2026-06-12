@@ -967,6 +967,8 @@ let allZoneConflicts = { exterior: [], interior: [] };
 let mapMode = 'conflicts'; // 'conflicts' | 'edits'
 let selectedEditMod = null; // .mod filename selected in "All Edits" mode
 let selectedEditZoneKey = null; // "zx,zy" of the clicked edit zone
+let editZoneDiff = null; // lazy object-level diff result for the selected exterior sector
+let conflictZoneDiff = null; // lazy per-mod object overlap for the selected conflict sector
 let allModEdits = {}; // conflictData.perModEdits: { modFile: { exterior:[], interior:[], extZoneCount, intZoneCount } }
 
 zoneMapClose.addEventListener('click', () => zoneMapModal.classList.add('hidden'));
@@ -1004,6 +1006,7 @@ function openZoneMap(focusZone) {
           zoneMap[key].mods[m.filename] = { filename: m.filename, loadOrder: m.loadOrder };
         }
         zoneMap[key].winner = c.winner;
+        if (c.zonePaths) zoneMap[key].zonePaths = c.zonePaths;
 
         const seenKey = `${layer}:${key}`;
         if (!detailSeen[seenKey]) detailSeen[seenKey] = new Set();
@@ -1193,8 +1196,11 @@ function renderZoneSidebar() {
           detail.appendChild(row);
         }
 
-        // Conflict property details
-        if (zc.details && zc.details.length > 0) {
+        // Exterior sectors: show the object-level overlap (what each mod changed, where they collide).
+        // Interiors keep the property-level list.
+        if (zoneLayer === 'exterior' && zc.zonePaths) {
+          renderConflictOverlap(detail, zc);
+        } else if (zc.details && zc.details.length > 0) {
           const detailHeader = document.createElement('div');
           detailHeader.style.cssText = 'margin-top:6px;padding-top:4px;border-top:1px solid #333;font-size:9px;color:#888;';
           detailHeader.textContent = `${zc.details.length} conflicting properties:`;
@@ -1231,12 +1237,23 @@ function renderZoneSidebar() {
 
 function selectZone(key) {
   selectedZoneKey = key;
+  conflictZoneDiff = null; // reset; loaded lazily below
   renderZoneOverlays();
   renderZoneSidebar();
 
   // Pan map to center the selected zone
   const zc = zoneConflicts.find((z) => `${z.zx},${z.zy}` === key);
   if (zc) panToZone(zc.zx, zc.zy);
+
+  // Object-level overlap for contested exterior sectors (lazy — each mod carries its .zone path)
+  if (zc && zoneLayer === 'exterior' && zc.zonePaths && config && config.gamePath) {
+    const reqKey = key;
+    window.api.diffSectorConflict(zc.zonePaths, config.gamePath, zc.zx, zc.zy).then((res) => {
+      if (selectedZoneKey !== reqKey) return; // a different sector was clicked since
+      conflictZoneDiff = res || { baseline: false };
+      renderZoneSidebar();
+    }).catch(() => {});
+  }
 
   // Expand the parent mod group and scroll sidebar to the active item
   const activeItem = zoneSidebarList.querySelector('.zone-conflict-item.active');
@@ -1313,22 +1330,26 @@ function renderEditModSidebar() {
         const detail = document.createElement('div');
         detail.className = 'zone-conflict-detail';
 
-        const head = document.createElement('div');
-        head.style.cssText = 'font-size:9px;color:#888;padding-bottom:2px;';
-        head.textContent = t('zoneMap.editsInZone', { x: zone.zx, y: zone.zy, count: zone.itemCount });
-        detail.appendChild(head);
-
-        for (const it of zone.items) {
-          const row = document.createElement('div');
-          row.style.cssText = 'font-size:9px;color:#999;padding:1px 0 1px 6px;';
-          row.textContent = `${it.name} → ${it.prop}`;
-          detail.appendChild(row);
-        }
-        if (zone.itemCount > zone.items.length) {
-          const more = document.createElement('div');
-          more.style.cssText = 'font-size:9px;color:#666;padding:1px 0 1px 6px;';
-          more.textContent = t('zoneMap.andMore', { count: zone.itemCount - zone.items.length });
-          detail.appendChild(more);
+        if (zone.items.length === 0) {
+          // Exterior sector: object-level diff vs the base game (loaded lazily on click)
+          renderSectorDiff(detail, zone);
+        } else {
+          const head = document.createElement('div');
+          head.style.cssText = 'font-size:9px;color:#888;padding-bottom:2px;';
+          head.textContent = t('zoneMap.editsInZone', { x: zone.zx, y: zone.zy, count: zone.itemCount });
+          detail.appendChild(head);
+          for (const it of zone.items) {
+            const row = document.createElement('div');
+            row.style.cssText = 'font-size:9px;color:#999;padding:1px 0 1px 6px;';
+            row.textContent = `${it.name} → ${it.prop}`;
+            detail.appendChild(row);
+          }
+          if (zone.itemCount > zone.items.length) {
+            const more = document.createElement('div');
+            more.style.cssText = 'font-size:9px;color:#666;padding:1px 0 1px 6px;';
+            more.textContent = t('zoneMap.andMore', { count: zone.itemCount - zone.items.length });
+            detail.appendChild(more);
+          }
         }
         zoneSidebarList.appendChild(detail);
       }
@@ -1351,7 +1372,7 @@ function renderEditOverlays(zoneW, zoneH) {
 
     const label = document.createElement('div');
     label.className = 'zone-map-label';
-    label.textContent = `${z.zx},${z.zy} (${z.itemCount})`;
+    label.textContent = z.itemCount ? `${z.zx},${z.zy} (${z.itemCount})` : `${z.zx},${z.zy}`;
     el.appendChild(label);
 
     el.addEventListener('click', () => selectEditZone(z.zx, z.zy));
@@ -1370,10 +1391,130 @@ function selectEditMod(mf) {
 
 function selectEditZone(zx, zy) {
   selectedEditZoneKey = `${zx},${zy}`;
+  editZoneDiff = null; // reset; loaded lazily below
   renderZoneOverlays();
   renderZoneSidebar();
   const activeItem = zoneSidebarList.querySelector('.zone-conflict-item.active');
   if (activeItem) activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // Object-level diff vs the base game (exterior sectors carry their .zone path)
+  const zones = (allModEdits[selectedEditMod] || {})[zoneLayer] || [];
+  const zone = zones.find((z) => `${z.zx},${z.zy}` === selectedEditZoneKey);
+  if (zone && zone.zonePath && config && config.gamePath) {
+    const reqKey = selectedEditZoneKey;
+    window.api.diffSector(zone.zonePath, config.gamePath, zx, zy).then((res) => {
+      if (selectedEditZoneKey !== reqKey) return; // a different sector was clicked since
+      editZoneDiff = res || { baseline: false };
+      renderZoneSidebar();
+    }).catch(() => {});
+  }
+}
+
+// Render the object-level diff (mod's sector vs the base game) as collapsible sections
+function renderSectorDiff(detail, zone) {
+  if (editZoneDiff === null) {
+    const h = document.createElement('div'); h.style.cssText = 'font-size:9px;color:#888;';
+    h.textContent = t('zoneMap.analyzing', { x: zone.zx, y: zone.zy }); detail.appendChild(h); return;
+  }
+  if (!editZoneDiff.baseline) {
+    const h = document.createElement('div'); h.style.cssText = 'font-size:9px;color:#888;';
+    h.textContent = t('zoneMap.sectorOverride', { x: zone.zx, y: zone.zy }); detail.appendChild(h); return;
+  }
+  const head = document.createElement('div');
+  head.style.cssText = 'font-size:9px;color:#888;padding-bottom:3px;';
+  head.textContent = t('zoneMap.sectorDiff', { x: zone.zx, y: zone.zy });
+  detail.appendChild(head);
+
+  const d = editZoneDiff;
+  makeDiffSection(detail, t('zoneMap.diffMoved', { count: d.summary.moved }),
+    d.moved.map((m) => `${m.name} — ${m.dist.toFixed(1)}u`), { open: true });
+  makeDiffSection(detail, t('zoneMap.diffAdded', { count: d.summary.added }),
+    d.added.map((a) => (a.count > 1 ? `${a.name} ×${a.count}` : a.name)), { caveat: true });
+  makeDiffSection(detail, t('zoneMap.diffRemoved', { count: d.summary.removed }),
+    d.removed.map((r) => (r.count > 1 ? `${r.name} ×${r.count}` : r.name)), { caveat: true });
+}
+
+// Render the per-mod object overlap for a contested exterior sector (what each mod changed + collisions).
+function renderConflictOverlap(detail, zc) {
+  const head = document.createElement('div');
+  head.style.cssText = 'margin-top:6px;padding-top:4px;border-top:1px solid #333;font-size:9px;color:#888;';
+  if (conflictZoneDiff === null) {
+    head.textContent = t('zoneMap.analyzing', { x: zc.zx, y: zc.zy });
+    detail.appendChild(head); return;
+  }
+  if (!conflictZoneDiff.baseline) {
+    head.textContent = t('zoneMap.newSector', { x: zc.zx, y: zc.zy });
+    detail.appendChild(head); return;
+  }
+  head.textContent = t('zoneMap.overlapTitle', { x: zc.zx, y: zc.zy });
+  detail.appendChild(head);
+
+  const d = conflictZoneDiff;
+  const short = (f) => f.replace(/\.mod$/i, '');
+
+  // Where the mods touch the SAME object — the real collisions load order can't reconcile.
+  if (d.overlap.length) {
+    makeDiffSection(detail, t('zoneMap.collisions', { count: d.overlap.length }),
+      d.overlap.map((o) => `${o.name} — ${o.mods.map((m) => short(m.mod) + (m.kind === 'moved' ? ` ${m.dist.toFixed(1)}u` : ' ✕')).join(' vs ')}`),
+      { open: true, caveat: true });
+  } else {
+    const none = document.createElement('div');
+    none.className = 'sector-diff-item';
+    none.style.paddingLeft = '0';
+    none.textContent = t('zoneMap.noOverlap');
+    detail.appendChild(none);
+  }
+
+  // What each mod changed in this sector (collapsed). → moved, + added, − removed.
+  for (const m of d.mods) {
+    const items = [
+      ...m.moved.map((x) => `→ ${x.name} ${x.dist.toFixed(1)}u`),
+      ...m.added.map((x) => `+ ${x.name}${x.count > 1 ? ` ×${x.count}` : ''}`),
+      ...m.removed.map((x) => `− ${x.name}${x.count > 1 ? ` ×${x.count}` : ''}`),
+    ];
+    const total = m.summary.moved + m.summary.added + m.summary.removed;
+    makeDiffSection(detail, `${short(m.mod)} · ${total}`, items, { caveat: true });
+  }
+}
+
+// A collapsible "Moved / Added / Removed" group in the sector-diff panel
+function makeDiffSection(parent, title, items, opts) {
+  opts = opts || {};
+  const section = document.createElement('div');
+  section.className = 'sector-diff-section';
+  const head = document.createElement('div');
+  head.className = 'sector-diff-head';
+  if (opts.caveat) head.title = t('zoneMap.diffCaveat');
+  const arrow = document.createElement('span');
+  arrow.className = 'sector-diff-arrow';
+  const label = document.createElement('span');
+  label.textContent = title + (opts.caveat ? ' ⓘ' : '');
+  head.append(arrow, label);
+  const list = document.createElement('div');
+  list.className = 'sector-diff-list';
+  for (const it of items.slice(0, 40)) {
+    const row = document.createElement('div');
+    row.className = 'sector-diff-item';
+    row.textContent = it;
+    list.appendChild(row);
+  }
+  if (items.length > 40) {
+    const more = document.createElement('div');
+    more.className = 'sector-diff-item';
+    more.style.color = '#666';
+    more.textContent = t('zoneMap.andMore', { count: items.length - 40 });
+    list.appendChild(more);
+  }
+  const expanded = !!opts.open && items.length > 0;
+  if (!expanded) list.classList.add('hidden');
+  arrow.textContent = items.length === 0 ? '·' : (expanded ? '▾' : '▸');
+  head.addEventListener('click', () => {
+    if (!items.length) return;
+    const collapsed = list.classList.toggle('hidden');
+    arrow.textContent = collapsed ? '▸' : '▾';
+  });
+  section.append(head, list);
+  parent.appendChild(section);
 }
 
 // Show All toggle

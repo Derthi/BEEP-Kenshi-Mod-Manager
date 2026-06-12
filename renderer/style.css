@@ -2101,6 +2101,30 @@ body.kenshi-theme .tutorial-divider {
   font-style: italic;
 }
 
+/* Object-level sector diff (collapsible Moved / Added / Removed) */
+.sector-diff-section { margin-top: 1px; }
+.sector-diff-head {
+  font-size: 9px;
+  color: #bfbfbf;
+  cursor: pointer;
+  padding: 1px 0;
+  user-select: none;
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+}
+.sector-diff-head:hover { color: #fff; }
+.sector-diff-arrow { width: 8px; color: #888; flex-shrink: 0; }
+.sector-diff-list { padding-left: 14px; }
+.sector-diff-item {
+  font-size: 9px;
+  color: #999;
+  padding: 1px 0;
+  line-height: 1.3;
+}
+body.kenshi-theme .sector-diff-head { color: #e0d4be; }
+body.kenshi-theme .sector-diff-item { color: #b8a98c; }
+
 /* Sidebar */
 .zone-map-sidebar {
   width: 260px;
