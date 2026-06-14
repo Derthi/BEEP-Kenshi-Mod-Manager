@@ -764,6 +764,24 @@ document.addEventListener('keydown', async (e) => {
 
 // ===== Update Check =====
 
+// Confirm, then download + install the update in place (the app relaunches on success).
+// Windows-only; the main process refuses to auto-apply on other platforms.
+async function doUpdate(info) {
+  const confirmed = await showConfirmModal(
+    t('confirm.updateAvailable', { current: info.currentVersion, latest: info.latestVersion })
+  );
+  if (!confirmed) { setStatus(t('status.updateCancelled')); return false; }
+
+  setStatus(t('status.downloading', { version: info.latestVersion }));
+  const result = await window.api.downloadUpdate(info.downloadUrl);
+  if (result.success) {
+    setStatus(t('status.updateInstalled'), 'success');
+    return true;
+  }
+  setStatus(t('status.updateFailed', { error: result.error }), 'error');
+  return false;
+}
+
 const updateBtn = document.getElementById('update-btn');
 updateBtn.addEventListener('click', async () => {
   setStatus(t('status.checkingUpdate'));
@@ -782,29 +800,16 @@ updateBtn.addEventListener('click', async () => {
     return;
   }
 
-  if (!info.downloadUrl) {
+  // No installable build for this OS (e.g. Linux/macOS) — point at the releases page instead.
+  if (!info.downloadUrl || window.api.platform !== 'win32') {
     setStatus(t('status.updateAvailable', { version: info.latestVersion }), 'success');
+    window.api.openExternal(info.releaseUrl || 'https://github.com/Derthi/BEEP-Kenshi-Mod-Manager/releases');
     updateBtn.disabled = false;
     return;
   }
 
-  const confirmed = await showConfirmModal(
-    t('confirm.updateAvailable', { current: info.currentVersion, latest: info.latestVersion })
-  );
-  if (!confirmed) {
-    updateBtn.disabled = false;
-    setStatus(t('status.updateCancelled'));
-    return;
-  }
-
-  setStatus(t('status.downloading', { version: info.latestVersion }));
-  const result = await window.api.downloadUpdate(info.downloadUrl);
-  if (result.success) {
-    setStatus(t('status.updateInstalled'), 'success');
-  } else {
-    setStatus(t('status.updateFailed', { error: result.error }), 'error');
-    updateBtn.disabled = false;
-  }
+  const done = await doUpdate(info);
+  if (!done) updateBtn.disabled = false;
 });
 
 // ===== Update Modal =====
@@ -874,13 +879,22 @@ async function autoCheckForUpdate() {
 
   const releaseUrl = info.releaseUrl || 'https://github.com/Derthi/BEEP-Kenshi-Mod-Manager/releases';
 
-  if (info.downloadUrl) {
-    downloadLink.onclick = () => { window.open(info.downloadUrl); };
+  if (info.downloadUrl && window.api.platform === 'win32') {
+    // Windows: install in place (no Save-As, no blank window).
+    downloadLink.classList.remove('hidden');
+    downloadLink.onclick = (e) => {
+      e.preventDefault();
+      updateModal.classList.add('hidden');
+      doUpdate(info);
+    };
+  } else if (info.downloadUrl) {
+    // Other platforms: in-app install isn't supported — open the releases page in the browser.
+    downloadLink.onclick = (e) => { e.preventDefault(); window.api.openExternal(releaseUrl); };
   } else {
     downloadLink.classList.add('hidden');
   }
 
-  githubLink.onclick = () => { window.open(releaseUrl); };
+  githubLink.onclick = (e) => { e.preventDefault(); window.api.openExternal(releaseUrl); };
 
   updateModal.classList.remove('hidden');
 }

@@ -28,6 +28,13 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => mainWindow.show());
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+
+  // Any window.open(url) opens in the user's real browser, never a blank Electron window
+  // (the old update "Download" link used window.open and spawned an empty window).
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:/i.test(url)) shell.openExternal(url);
+    return { action: 'deny' };
+  });
 }
 
 // IPC Handlers

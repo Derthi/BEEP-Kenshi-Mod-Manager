@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+  platform: process.platform,
   getConfig: () => ipcRenderer.invoke('get-config'),
   detectSteam: () => ipcRenderer.invoke('detect-steam'),
   saveConfig: (config) => ipcRenderer.invoke('save-config', config),
