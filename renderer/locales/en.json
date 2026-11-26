@@ -190,6 +190,7 @@
   "settings.tooltip": "Settings",
   "settings.mapZoomSpeed": "Map zoom speed",
   "settings.columnScrollSpeed": "Column scroll speed",
+  "settings.ignoredFiles": "Ignored asset files (one filename per line)",
   "settings.reset": "Reset to defaults",
   "settings.close": "Close",
 
