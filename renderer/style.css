@@ -1891,6 +1891,12 @@ body.kenshi-theme .update-changes-line {
   cursor: pointer;
 }
 
+.setting-row .modal-textarea {
+  flex: 1.1;
+  min-width: 0;
+  height: 80px;
+}
+
 .setting-value {
   width: 48px;
   text-align: right;

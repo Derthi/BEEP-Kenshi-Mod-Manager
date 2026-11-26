@@ -17,7 +17,7 @@ contextBridge.exposeInMainWorld('api', {
   openFileDialog: (filters) => ipcRenderer.invoke('open-file-dialog', filters),
   saveFileDialog: (name) => ipcRenderer.invoke('save-file-dialog', name),
   writeFile: (path, content) => ipcRenderer.invoke('write-file', path, content),
-  generateConflicts: (activeMods, gamePath) => ipcRenderer.invoke('generate-conflicts', activeMods, gamePath),
+  generateConflicts: (activeMods, gamePath, ignoredFiles) => ipcRenderer.invoke('generate-conflicts', activeMods, gamePath, ignoredFiles),
   diffSector: (zonePath, gamePath, zx, zy) => ipcRenderer.invoke('diff-sector', zonePath, gamePath, zx, zy),
   diffSectorConflict: (zonePathsByMod, gamePath, zx, zy) => ipcRenderer.invoke('diff-sector-conflict', zonePathsByMod, gamePath, zx, zy),
   checkForUpdate: () => ipcRenderer.invoke('check-for-update'),

@@ -605,7 +605,7 @@ async function runConflictCheck() {
   generateConflictsBtn.disabled = true;
 
   try {
-    conflictData = await window.api.generateConflicts(activeMods, config.gamePath);
+    conflictData = await window.api.generateConflicts(activeMods, config.gamePath, config.ignoredFiles || []);
     const conflictModCount = Object.keys(conflictData.modConflicts).length;
     if (conflictData.totalConflicts > 0) {
       setStatus(t('status.conflictsFound', { conflicts: conflictData.totalConflicts, mods: conflictModCount }), 'error');
@@ -909,12 +909,14 @@ const setMapZoom = document.getElementById('set-map-zoom');
 const setMapZoomVal = document.getElementById('set-map-zoom-val');
 const setColScroll = document.getElementById('set-col-scroll');
 const setColScrollVal = document.getElementById('set-col-scroll-val');
+const setIgnoredFiles = document.getElementById('set-ignored-files');
 
 function syncSettingsUI() {
   setMapZoom.value = mapZoomSpeed;
   setColScroll.value = columnScrollSpeed;
   setMapZoomVal.textContent = Number(mapZoomSpeed).toFixed(2);
   setColScrollVal.textContent = Number(columnScrollSpeed).toFixed(2) + '×';
+  setIgnoredFiles.value = (config.ignoredFiles || []).join('\n');
 }
 
 appSettingsBtn.addEventListener('click', () => {
@@ -944,11 +946,19 @@ setColScroll.addEventListener('change', () => {
   persistConfig();
 });
 
+setIgnoredFiles.addEventListener('change', () => {
+  config.ignoredFiles = setIgnoredFiles.value
+    .split('\n')
+    .map((name) => name.trim())
+    .filter(Boolean);
+  persistConfig();
+});
 settingsResetBtn.addEventListener('click', () => {
   mapZoomSpeed = DEFAULT_MAP_ZOOM_SPEED;
   columnScrollSpeed = DEFAULT_COLUMN_SCROLL_SPEED;
   config.mapZoomSpeed = mapZoomSpeed;
   config.columnScrollSpeed = columnScrollSpeed;
+  config.ignoredFiles = [];
   syncSettingsUI();
   persistConfig();
 });

@@ -221,8 +221,8 @@ ipcMain.handle('open-mods-folder', async (_event, gamePath) => {
 });
 
 // Conflict detection
-ipcMain.handle('generate-conflicts', (_event, activeMods, gamePath) => {
-  return conflictDetector.detectConflicts(activeMods, gamePath);
+ipcMain.handle('generate-conflicts', (_event, activeMods, gamePath, ignoredFiles) => {
+  return conflictDetector.detectConflicts(activeMods, gamePath, ignoredFiles);
 });
 
 // Object-level diff of a mod's edited sector against the base game (lazy — on sector click)
